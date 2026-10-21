@@ -73,4 +73,8 @@ create policy "delete own post"    on public.posts    for delete to authenticate
 create policy "delete own comment" on public.comments for delete to authenticated using (author = auth.uid());
 create policy "delete own like"    on public.likes    for delete to authenticated using (user_id = auth.uid());
 
+-- 테이블 권한 명시 ("Automatically expose new tables" 를 꺼도 동작하도록)
+grant usage on schema public to anon, authenticated;
+grant select on public.profiles, public.posts, public.comments, public.likes to anon, authenticated;
 grant select on public.posts_feed, public.comments_feed to anon, authenticated;
+grant insert, delete on public.posts, public.comments, public.likes to authenticated;

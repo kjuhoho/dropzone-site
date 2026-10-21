@@ -28,7 +28,7 @@ function supabase() {
     const t = noAuth ? null : await token();
     const r = await fetch(C.supabaseUrl + path, {
       method, body: body ? JSON.stringify(body) : undefined,
-      headers: { apikey: C.supabaseKey, Authorization: "Bearer " + (t || C.supabaseKey), "Content-Type": "application/json", ...(prefer ? { Prefer: prefer } : {}) }
+      headers: { apikey: C.supabaseKey, ...(t ? { Authorization: "Bearer " + t } : C.supabaseKey.startsWith("sb_") ? {} : { Authorization: "Bearer " + C.supabaseKey }), "Content-Type": "application/json", ...(prefer ? { Prefer: prefer } : {}) }
     });
     const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch {}
     if (!r.ok) throw fail((j && (j.error_code || j.code)) || "generic", (j && (j.msg || j.message || j.error_description)) || r.statusText);
