@@ -20,7 +20,7 @@ DZ.ago = iso => {
   for (const [u, n] of [["year", 31536000], ["month", 2592000], ["day", 86400], ["hour", 3600], ["minute", 60]]) if (Math.abs(s) >= n) return r.format(Math.round(s / n), u);
   return r.format(0, "second");
 };
-DZ.errText = e => { const k = "err." + (e && e.code); return DZ.I.strings.en[k] ? DZ.T(k) : DZ.T("err.generic"); };
+DZ.errText = e => { const k = "err." + (e && e.code); return DZ.I.strings.en[k] ? DZ.T(k) : DZ.T("err.generic") + (e && e.code ? " (" + e.code + ")" : ""); };
 
 function applyLang() {
   document.documentElement.lang = DZ.lang;
@@ -36,17 +36,20 @@ DZ.setLang = l => { DZ.lang = l; try { localStorage.setItem("lang", l); } catch 
 
 /* ---------- Turnstile (봇 차단, config.turnstileSiteKey 가 있을 때만) ---------- */
 let capTok = null, capId = null, capLoading = false;
+const capMsg = (k, extra) => { const el = $("aCapMsg"); if (el) el.textContent = k ? DZ.T(k) + (extra ? " (" + extra + ")" : "") : ""; };
+const waitToken = async ms => { const t0 = Date.now(); while (!capTok && Date.now() - t0 < ms) await new Promise(r => setTimeout(r, 200)); return capTok; };
 function renderCaptcha() {
   const box = $("aCaptcha"), key = CFG.turnstileSiteKey;
-  box.hidden = !key; if (!key) return;
+  box.hidden = !key; $("aCapMsg").hidden = !key; if (!key) return;
+  capMsg("captcha.wait");
   const go = () => {
-    if (capId !== null) { window.turnstile.reset(capId); capTok = null; return; }
-    capId = window.turnstile.render(box, { sitekey: key, theme: "dark", callback: t => { capTok = t; }, "expired-callback": () => { capTok = null; }, "error-callback": () => { capTok = null; } });
+    if (capId !== null) { window.turnstile.reset(capId); capTok = null; capMsg("captcha.wait"); return; }
+    capId = window.turnstile.render(box, { sitekey: key, theme: "dark", callback: t => { capTok = t; capMsg("captcha.ok"); }, "expired-callback": () => { capTok = null; capMsg("captcha.wait"); }, "error-callback": code => { capTok = null; capMsg("captcha.fail", code); return true; } });
   };
   if (window.turnstile) go();
   else if (!capLoading) { capLoading = true; const s = document.createElement("script"); s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"; s.async = true; s.onload = go; document.head.appendChild(s); }
 }
-const resetCaptcha = () => { capTok = null; if (capId !== null && window.turnstile) window.turnstile.reset(capId); };
+const resetCaptcha = () => { capTok = null; if (capId !== null && window.turnstile) { window.turnstile.reset(capId); capMsg("captcha.wait"); } };
 
 /* ---------- 로그인 / 가입 ---------- */
 let mode = "login";
@@ -98,6 +101,7 @@ function buildDialogs() {
     <label class="show"><input type="checkbox" id="aShow"> <span data-i18n="auth.show"></span></label>
     <label class="show" id="aConsent"><input type="checkbox" id="aAgree"> <span data-i18n-html="auth.agree"></span></label>
     <div id="aCaptcha" hidden></div>
+    <p class="fine" id="aCapMsg" aria-live="polite" hidden></p>
     <p class="err" id="aErr" role="alert"></p>
     <button class="cta" id="aSubmit" type="submit"></button>
     <button type="button" class="linkish" id="aSwitch"></button>
@@ -141,8 +145,8 @@ function buildDialogs() {
     if (!B().ID_RE.test(id)) return err(DZ.T("err.idFormat"));
     if (pw.length < 8) return err(DZ.T("err.pwShort"));
     if (su && !$("aAgree").checked) return err(DZ.T("err.consent"));
-    if (CFG.turnstileSiteKey && !capTok) return err(DZ.T("err.captcha"));
     $("aSubmit").disabled = true;
+    if (CFG.turnstileSiteKey && !capTok) { err(""); capMsg("captcha.wait"); await waitToken(15000); if (!capTok) { $("aSubmit").disabled = false; return err(DZ.T("err.captcha")); } }
     try { await (su ? B().signUp(id, pw, capTok) : B().signIn(id, pw, capTok)); authDlg.close(); $("aPw").value = ""; fireAuth(); }
     catch (ex) { err(DZ.errText(ex)); }
     finally { $("aSubmit").disabled = false; resetCaptcha(); }

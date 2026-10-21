@@ -136,7 +136,10 @@
       "legal.p7": "Deletion: you can delete your account at any time from the account menu. This removes your account, profile, posts, comments and likes. Backups may keep copies for a short period.",
       "legal.p8": "This site is not intended for children under 14. Please do not use it if you are under 14.",
       "legal.p9": "Contact: tell us in the community Lounge, or use the contact below if shown.",
-      "legal.contact": "Contact"
+      "legal.contact": "Contact",
+      "captcha.wait": "Verifying you're human…",
+      "captcha.ok": "Verified ✓",
+      "captcha.fail": "Verification problem. Reload the page and try again"
     },
     "ko": {
       "tagline": "EDM을 즐기는 사람들의 공간",
@@ -268,7 +271,10 @@
       "legal.p7": "삭제: 계정 메뉴에서 언제든 계정을 삭제할 수 있으며, 계정·프로필·글·댓글·좋아요가 함께 삭제됩니다. 백업에는 짧은 기간 남아 있을 수 있습니다.",
       "legal.p8": "만 14세 미만 아동을 대상으로 하지 않습니다. 만 14세 미만은 이용하지 말아 주세요.",
       "legal.p9": "문의: 커뮤니티 라운지에 남겨 주시거나, 아래 연락처가 표시되어 있으면 그쪽으로 연락해 주세요.",
-      "legal.contact": "문의"
+      "legal.contact": "문의",
+      "captcha.wait": "사람인지 확인하는 중…",
+      "captcha.ok": "확인 완료 ✓",
+      "captcha.fail": "확인에 문제가 있어요. 새로고침 후 다시 시도해 주세요"
     },
     "ja": {
       "tagline": "EDMを愛する人たちのための場所",
@@ -400,7 +406,10 @@
       "legal.p7": "削除:アカウントメニューからいつでもアカウントを削除できます。アカウント、プロフィール、投稿、コメント、いいねが削除されます。バックアップには短期間残る場合があります。",
       "legal.p8": "本サイトは14歳未満の方を対象としていません。14歳未満の方はご利用をお控えください。",
       "legal.p9": "お問い合わせ:コミュニティのラウンジに書き込むか、下に連絡先が表示されている場合はそちらへご連絡ください。",
-      "legal.contact": "お問い合わせ"
+      "legal.contact": "お問い合わせ",
+      "captcha.wait": "人間かどうか確認中…",
+      "captcha.ok": "確認完了 ✓",
+      "captcha.fail": "確認に問題があります。ページを再読み込みしてもう一度お試しください"
     },
     "id": {
       "tagline": "Ruang untuk para pecinta EDM",
@@ -532,7 +541,10 @@
       "legal.p7": "Penghapusan: Anda dapat menghapus akun kapan saja dari menu akun. Ini menghapus akun, profil, postingan, komentar, dan suka Anda. Cadangan dapat menyimpan salinan dalam waktu singkat.",
       "legal.p8": "Situs ini tidak ditujukan untuk anak di bawah 14 tahun. Harap jangan menggunakannya jika Anda berusia di bawah 14 tahun.",
       "legal.p9": "Kontak: sampaikan di Lounge komunitas, atau gunakan kontak di bawah jika ditampilkan.",
-      "legal.contact": "Kontak"
+      "legal.contact": "Kontak",
+      "captcha.wait": "Memverifikasi bahwa Anda manusia…",
+      "captcha.ok": "Terverifikasi ✓",
+      "captcha.fail": "Ada masalah verifikasi. Muat ulang halaman lalu coba lagi"
     }
   }
 }
