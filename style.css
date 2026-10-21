@@ -115,3 +115,18 @@ dialog .cta{width:100%}
 .cmt small{color:var(--dim);margin-left:6px}.cmt b{color:var(--c1)}
 .cmt-form{display:flex;gap:8px}.cmt-form input{flex:1}
 .empty{color:var(--dim);text-align:center;padding:30px 0;list-style:none}
+
+.legal h2{margin:34px 0 12px;color:var(--c1)}
+.legal-list{padding-left:20px;display:grid;gap:10px;color:#d6d2ee}
+footer a{text-decoration:underline;text-underline-offset:3px}
+.me-btn{color:var(--c1)}
+.google-btn{display:flex;gap:10px;align-items:center;justify-content:center;width:100%;padding:11px;border-radius:99px;background:#fff;color:#1f1f1f;font-weight:600}
+.or{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:12px;margin:10px 0 2px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+#aCaptcha{min-height:0}
+.acct-name{font-size:18px;color:var(--c1);font-weight:700}
+dialog hr{border:0;border-top:1px solid var(--line);margin:8px 0}
+dialog #nId,dialog #acConfirm{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
+.danger{color:#ff8da5}
+.danger-btn{padding:10px;border-radius:99px;border:1px solid #ff6b8b;color:#ff8da5;font-weight:700}
+.danger-btn:hover{background:#ff6b8b22}
