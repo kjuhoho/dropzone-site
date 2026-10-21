@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DROPZONE — Community</title>
+<meta name="description" content="A community for people who love EDM. Share tracks, talk production, find events.">
+<meta name="theme-color" content="#07060d">
+<meta property="og:title" content="DROPZONE — Community">
+<meta property="og:description" content="A community for people who love EDM.">
+<meta property="og:image" content="media/covers/demo.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307060d'/%3E%3Cpath d='M6 24 16 6l10 18' fill='none' stroke='%2300f0ff' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-community">
+<header class="top">
+  <a class="logo" href="./" id="siteName">DROPZONE</a>
+  <nav><a class="sec" href="./" data-i18n="nav.tracks">Tracks</a><a href="community.html" class="on" data-i18n="nav.community">Community</a>
+    <select id="lang" data-i18n-aria="a.lang" aria-label="Language"></select><span id="authBar" class="authbar"></span></nav>
+</header>
+
+<main>
+  <section class="cm-head">
+    <h1 class="cm-title" data-i18n="c.title"></h1>
+    <p class="sub" data-i18n="c.sub"></p>
+    <p class="demo-banner" id="demoBanner" hidden data-i18n="c.demo"></p>
+    <div id="boardChips" class="chips filters" role="tablist"></div>
+    <p class="board-desc" id="boardDesc"></p>
+  </section>
+
+  <section class="cm-body">
+    <div id="composerBox"></div>
+    <div id="postList" class="posts" aria-live="polite"></div>
+  </section>
+</main>
+
+<footer>© <span id="yr"></span> <span id="footName">DROPZONE</span></footer>
+<div class="toast" id="toast" role="status"></div>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<script src="common.js"></script>
+<script src="community.js"></script>
+</body>
+</html>

@@ -16,8 +16,8 @@
 <body>
 <header class="top">
   <a class="logo" href="./" id="siteName">DROPZONE</a>
-  <nav><a href="#tracks" data-i18n="nav.tracks">Tracks</a><a href="#shorts" data-i18n="nav.shorts">Shorts</a><a href="#follow" data-i18n="nav.follow">Follow</a>
-    <select id="lang" data-i18n-aria="a.lang" aria-label="Language"></select></nav>
+  <nav><a class="sec" href="#tracks" data-i18n="nav.tracks">Tracks</a><a class="sec" href="#shorts" data-i18n="nav.shorts">Shorts</a><a href="community.html" data-i18n="nav.community">Community</a>
+    <select id="lang" data-i18n-aria="a.lang" aria-label="Language"></select><span id="authBar" class="authbar"></span></nav>
 </header>
 
 <main>
@@ -54,6 +54,12 @@
     <div id="shortGrid" class="shorts"></div>
   </section>
 
+  <section id="join" class="join">
+    <h2 data-i18n="j.title"></h2>
+    <p class="sub" data-i18n="j.text"></p>
+    <a class="cta" href="community.html" data-i18n="j.btn"></a>
+  </section>
+
   <section id="follow">
     <h2 data-i18n="h.follow"></h2>
     <div id="links" class="chips"></div>
@@ -74,6 +80,9 @@
   <button id="share" data-i18n-aria="a.share">🔗</button>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<script src="common.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

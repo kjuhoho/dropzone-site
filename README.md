@@ -56,3 +56,14 @@ GitHub Pages는 repo 1GB·사이트 1GB·월 100GB 대역폭 소프트 한도라
 - 문구는 `data/i18n.json` 한 파일에서 관리. 언어 추가 = `languages`에 코드 추가 + `strings`에 같은 키 세트 복사 후 번역.
 - 프로듀서 이름·곡 제목·장르는 번역하지 않는다 (`tracks.json` 값 그대로). 분위기 필터는 키(party 등)로 저장하고 화면에서만 번역.
 - 선택한 언어는 브라우저에 저장되고 `?lang=ko` 로도 지정할 수 있다 (숏폼 설명란 링크를 나라별로 다르게 쓰기 좋다).
+
+## 커뮤니티 / 회원 (ID + 비밀번호)
+- 페이지: `community.html` (게시판 4개: lounge / share / producers / events, 글·댓글·🔥좋아요). 이메일·이름·전화번호는 받지 않는다.
+- **데모 모드**: `config.js`가 비어 있으면 글/계정이 그 브라우저의 localStorage에만 저장된다 (공개되지 않음, 화면에 노란 배너 표시).
+- **라이브 전환 (Supabase 무료 플랜, 약 10분)**
+  1. supabase.com 에서 프로젝트 생성 (Region: Northeast Asia 등)
+  2. Authentication → Providers → Email: **"Confirm email" 끄기** (ID를 내부용 가짜 이메일로 변환해서 쓰기 때문)
+  3. SQL Editor 에 `supabase/schema.sql` 전체를 붙여넣고 Run
+  4. Project Settings → API 의 `Project URL` 과 `anon public` 키를 `config.js` 에 입력 → push (service_role 키는 절대 넣지 않는다)
+- 보안: 테이블은 RLS로 보호 (읽기=누구나, 쓰기/삭제=로그인한 본인 글만). 본문은 전부 이스케이프하며 http(s) 링크만 자동 링크.
+- 알려진 한계: 비밀번호 분실 시 복구 불가(이메일을 안 받으므로). 스팸 방지는 클라이언트 쿨다운뿐 — 트래픽이 생기면 Cloudflare Turnstile 등 추가. 부적절한 글 삭제는 Supabase 대시보드(Table Editor)에서 한다.

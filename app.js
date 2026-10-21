@@ -2,24 +2,20 @@
 const $ = id => document.getElementById(id);
 const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
 const audio = new Audio(); audio.preload = "metadata";
-let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "all", I = {}, lang = "en", moodKeys = [], producer = {};
-const T = k => (I.strings[lang] && I.strings[lang][k]) || I.strings.en[k] || k;
+let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "all", moodKeys = [], producer = {};
+const T = (k, v) => DZ.T(k, v), toast = m => DZ.toast(m);
 
-const toast = m => { const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800); };
 const trackUrl = t => location.origin + location.pathname + "?t=" + t.slug;
 
 async function init() {
-  $("yr").textContent = new Date().getFullYear();
-  const [tj, sj, i18n] = await Promise.all(["tracks", "shorts", "i18n"].map(n => fetch(`data/${n}.json`).then(r => r.json())));
-  I = i18n;
+  await DZ.init();
+  const [tj, sj] = await Promise.all(["tracks", "shorts"].map(n => fetch(`data/${n}.json`).then(r => r.json())));
   tracks = tj.tracks; shorts = sj.shorts;
   const s = tj.site, p = tj.producer; producer = p; moodKeys = ["all", ...tj.moods];
   $("siteName").textContent = s.name; $("footName").textContent = s.name; $("prName").textContent = p.name; $("prAvatar").src = p.avatar;
-  $("lang").innerHTML = Object.entries(I.languages).map(([k, n]) => `<option value="${k}">${n}</option>`).join("");
-  $("lang").onchange = e => setLang(e.target.value);
   $("moodChips").onclick = e => { const b = e.target.closest("button"); if (!b) return; mood = b.dataset.m; renderMoods(); renderTracks(); };
-  lang = pickLang(); $("lang").value = lang;
-  applyLang(); renderTracks(); renderShorts();
+  DZ.onLang(() => { renderMoods(); renderAllLinks(); sync(); renderTracks(); renderShorts(); });
+  DZ.applyLang();
   const want = new URLSearchParams(location.search).get("t");
   const i = tracks.findIndex(t => t.slug === want);
   if (i >= 0) { load(i); toast(T("t.tap")); } // 자동재생은 브라우저가 막으므로 로드만
@@ -60,20 +56,8 @@ function renderLinks(el, l, showEmpty) {
   el.innerHTML = on.length ? on.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`).join("") : (showEmpty ? `<span class="empty">${T("linksSoon")}</span>` : "");
 }
 
-function pickLang() {
-  let l = null; try { l = new URLSearchParams(location.search).get("lang") || localStorage.getItem("lang"); } catch {}
-  return I.languages[l] ? l : "en";
-}
 function renderMoods() {
   $("moodChips").innerHTML = moodKeys.map(m => `<button data-m="${m}" class="${m === mood ? "on" : ""}">${T("mood." + m)}</button>`).join("");
-}
-function setLang(l) { lang = l; try { localStorage.setItem("lang", l); } catch {} applyLang(); renderTracks(); renderShorts(); }
-function applyLang() {
-  document.documentElement.lang = lang;
-  document.title = $("siteName").textContent + " — " + T("tagline");
-  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = T(el.dataset.i18n));
-  document.querySelectorAll("[data-i18n-aria]").forEach(el => el.setAttribute("aria-label", T(el.dataset.i18nAria)));
-  renderMoods(); renderAllLinks(); sync();
 }
 function load(i) {
   cur = i; const t = tracks[i];
