@@ -5,7 +5,7 @@
 const C = window.DZ_CONFIG || {};
 const live = !!(C.supabaseUrl && C.supabaseKey);
 const ID_RE = /^[A-Za-z0-9_]{3,20}$/;
-const BOARDS = ["lounge", "share", "producers", "events"];
+const BOARDS = ["lounge", "share", "feedback", "producers", "gear", "events", "collab", "memes"];
 const fail = (code, msg) => Object.assign(new Error(msg || code), { code });
 const emailOf = u => u.toLowerCase() + "@" + (C.emailDomain || "dropzone-users.app");
 const rd = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
@@ -63,6 +63,13 @@ function supabase() {
       else if (!p) save(null); // 계정이 삭제된 경우
     } catch (e) { if (e.status === 401) save(null); }
   }
+  const q_ = encodeURIComponent;
+  async function withLiked(rows) {
+    if (!sess || !rows.length) return rows.map(p => ({ ...p, liked: false }));
+    const ids = rows.map(p => p.id).join(",");
+    const liked = new Set((await raw(`/rest/v1/likes?select=post_id&user_id=eq.${sess.user.id}&post_id=in.(${ids})`)).map(x => x.post_id));
+    return rows.map(p => ({ ...p, liked: liked.has(p.id) }));
+  }
   const sec = cap => cap ? { gotrue_meta_security: { captcha_token: cap } } : {};
   const api = {
     live: true,
@@ -84,12 +91,20 @@ function supabase() {
     async signOut() { try { await raw("/auth/v1/logout", { method: "POST" }); } catch {} save(null); },
     async setUsername(name) { await raw("/rest/v1/rpc/set_username", { method: "POST", body: { new_name: name } }); await profile(); },
     async deleteAccount() { await raw("/rest/v1/rpc/delete_my_account", { method: "POST", body: {} }); save(null); },
-    async posts(board) {
-      const rows = await raw(`/rest/v1/posts_feed?board=eq.${q(board)}&order=created_at.desc&limit=50`);
-      const liked = sess ? new Set((await raw(`/rest/v1/likes?select=post_id&user_id=eq.${sess.user.id}`)).map(x => x.post_id)) : new Set();
-      return rows.map(p => ({ ...p, liked: liked.has(p.id) }));
+    async posts({ board, sort = "latest", q, author, offset = 0, limit = 20 } = {}) {
+      const f = [];
+      if (board) f.push(`board=eq.${q_(board)}`);
+      if (author) f.push(`username=eq.${q_(author)}`);
+      const term = (q || "").replace(/[,()*"\%]/g, " ").trim().slice(0, 60);
+      if (term) f.push(`or=(title.ilike.*${q_(term)}*,body.ilike.*${q_(term)}*)`);
+      const ord = sort === "top" ? "like_count.desc,created_at.desc" : "created_at.desc";
+      const rows = await raw(`/rest/v1/posts_feed?${f.join("&")}&order=${ord}&limit=${limit}&offset=${offset}`);
+      return withLiked(rows);
     },
-    createPost: (board, title, body) => raw("/rest/v1/posts", { method: "POST", body: { board, title, body }, prefer: "return=minimal" }),
+    async post(id) { const rows = await withLiked(await raw(`/rest/v1/posts_feed?id=eq.${+id}`)); return rows[0] || null; },
+    async texts() { return raw("/rest/v1/posts_feed?select=title,body&order=created_at.desc&limit=200"); },
+    async createPost(board, title, body) { const r = await raw("/rest/v1/posts", { method: "POST", body: { board, title, body }, prefer: "return=representation" }); return r && r[0] && r[0].id; },
+    async report(type, id, reason) { try { await raw("/rest/v1/reports", { method: "POST", body: { target_type: type, target_id: id, reason: reason || null }, prefer: "return=minimal" }); } catch (e) { if (e.code === "taken" || /duplicate|23505/.test(e.message)) throw fail("reportedAlready"); throw e; } },
     deletePost: id => raw(`/rest/v1/posts?id=eq.${id}`, { method: "DELETE" }),
     comments: id => raw(`/rest/v1/comments_feed?post_id=eq.${id}&order=created_at.asc&limit=200`),
     createComment: (post_id, body) => raw("/rest/v1/comments", { method: "POST", body: { post_id, body }, prefer: "return=minimal" }),
@@ -130,15 +145,20 @@ function demo() {
     async deleteAccount() {
       const u = need(), d = db(); delete d.users[u.id]; d.posts = d.posts.filter(p => p.author !== u.id); d.comments = d.comments.filter(c => c.author !== u.id); d.likes = d.likes.filter(l => l.user_id !== u.id); d.session = null; put(d);
     },
-    async posts(board) {
-      const d = db(), u = me();
-      return d.posts.filter(p => p.board === board).sort((a, b) => b.id - a.id).map(p => ({
+    async posts({ board, sort = "latest", q, author, offset = 0, limit = 20 } = {}) {
+      const d = db(), u = me(), t = (q || "").toLowerCase();
+      let rows = d.posts.filter(p => (!board || p.board === board) && (!author || p.username.toLowerCase() === author.toLowerCase()) && (!t || (p.title + " " + p.body).toLowerCase().includes(t))).map(p => ({
         ...p, like_count: d.likes.filter(l => l.post_id === p.id).length,
         comment_count: d.comments.filter(c => c.post_id === p.id).length,
         liked: !!u && d.likes.some(l => l.post_id === p.id && l.user_id === u.id)
       }));
+      rows.sort((a, b) => sort === "top" ? (b.like_count - a.like_count) || (b.id - a.id) : b.id - a.id);
+      return rows.slice(offset, offset + limit);
     },
-    async createPost(board, title, body) { const u = need(), d = db(); d.posts.push({ id: d.seq++, board, title, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); },
+    async post(id) { return (await this.posts({ limit: 1e6 })).find(p => p.id === +id) || null; },
+    async texts() { return db().posts.slice(-200).map(p => ({ title: p.title, body: p.body })); },
+    async createPost(board, title, body) { const u = need(), d = db(), id = d.seq++; d.posts.push({ id, board, title, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); return id; },
+    async report() { need(); },
     async deletePost(id) { const u = need(), d = db(); d.posts = d.posts.filter(p => !(p.id === id && p.author === u.id)); d.comments = d.comments.filter(c => c.post_id !== id); d.likes = d.likes.filter(l => l.post_id !== id); put(d); },
     async comments(id) { return db().comments.filter(c => c.post_id === id); },
     async createComment(post_id, body) { const u = need(), d = db(); d.comments.push({ id: d.seq++, post_id, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); },

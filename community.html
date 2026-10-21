@@ -19,19 +19,39 @@
     <select id="lang" data-i18n-aria="a.lang" aria-label="Language"></select><span id="authBar" class="authbar"></span></nav>
 </header>
 
-<main>
-  <section class="cm-head">
-    <h1 class="cm-title" data-i18n="c.title"></h1>
-    <p class="sub" data-i18n="c.sub"></p>
+<main class="cm-wrap">
+  <aside class="cm-left" aria-label="Categories">
+    <nav id="boardNav" class="board-nav"></nav>
+  </aside>
+
+  <section class="cm-main">
     <p class="demo-banner" id="demoBanner" hidden data-i18n="c.demo"></p>
-    <div id="boardChips" class="chips filters" role="tablist"></div>
-    <p class="board-desc" id="boardDesc"></p>
+    <form class="cm-search" id="searchForm" role="search">
+      <input id="q" type="search" maxlength="60" data-i18n-ph="c.searchPh" aria-label="Search" autocomplete="off">
+    </form>
+    <div id="viewHead" class="view-head"></div>
+    <div id="composerBox"></div>
+    <div id="postList" class="feed" aria-live="polite"></div>
+    <button id="more" class="more" hidden></button>
   </section>
 
-  <section class="cm-body">
-    <div id="composerBox"></div>
-    <div id="postList" class="posts" aria-live="polite"></div>
-  </section>
+  <aside class="cm-right">
+    <section class="side-card">
+      <h3 data-i18n="c.trending"></h3>
+      <div id="tagList" class="tag-list"></div>
+    </section>
+    <section class="side-card" id="featCard" hidden>
+      <h3 data-i18n="c.featured"></h3>
+      <a class="feat" href="./">
+        <img id="featImg" alt="">
+        <span><b id="featName"></b><small data-i18n="c.listen"></small></span>
+      </a>
+    </section>
+    <section class="side-card">
+      <h3 data-i18n="c.rulesTitle"></h3>
+      <ol class="rules"><li data-i18n="c.rule1"></li><li data-i18n="c.rule2"></li><li data-i18n="c.rule3"></li><li data-i18n="c.rule4"></li></ol>
+    </section>
+  </aside>
 </main>
 
 <footer>© <span id="yr"></span> <span id="footName">DROPZONE</span> · <a href="legal.html#terms" data-i18n="f.terms"></a> · <a href="legal.html#privacy" data-i18n="f.privacy"></a></footer>
