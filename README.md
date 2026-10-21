@@ -67,3 +67,21 @@ GitHub Pages는 repo 1GB·사이트 1GB·월 100GB 대역폭 소프트 한도라
   4. Project Settings → API 의 `Project URL` 과 `anon public` 키를 `config.js` 에 입력 → push (service_role 키는 절대 넣지 않는다)
 - 보안: 테이블은 RLS로 보호 (읽기=누구나, 쓰기/삭제=로그인한 본인 글만). 본문은 전부 이스케이프하며 http(s) 링크만 자동 링크.
 - 알려진 한계: 비밀번호 분실 시 복구 불가(이메일을 안 받으므로). 스팸 방지는 클라이언트 쿨다운뿐 — 트래픽이 생기면 Cloudflare Turnstile 등 추가. 부적절한 글 삭제는 Supabase 대시보드(Table Editor)에서 한다.
+
+## 보안·운영 설정 (적용 현황)
+- **Supabase URL 설정**: Site URL = `https://kjuhoho.github.io/dropzone-site/`, Redirect URLs = `https://kjuhoho.github.io/dropzone-site/**` (적용됨). 커스텀 도메인을 붙이면 두 곳 모두 새 주소로 추가/변경.
+- **DB 보강**: `supabase/002_hardening.sql` 적용됨 — 임시 닉네임(needs_username), `set_username`, `delete_my_account`, 서버측 스팸 제한(글 15초·일 30개, 댓글 4초·일 200개).
+- **약관/개인정보**: `legal.html` (4개 언어). 가입 시 동의 체크 필수. 문의 이메일을 `config.js`의 `contact`에 넣으면 표시됨.
+- **계정 삭제**: 로그인 후 상단 `@닉네임` → 계정 → 삭제 (글·댓글·좋아요 함께 삭제).
+
+### 봇 차단 (Cloudflare Turnstile) — 사용자 계정 필요
+1. dash.cloudflare.com → Turnstile → Add widget. Domain: `kjuhoho.github.io`, Mode: Managed.
+2. **Site Key**(공개) → `config.js` 의 `turnstileSiteKey` 에 입력 후 push.
+3. **Secret Key**(비공개) → Supabase → Authentication → Attack Protection → Enable CAPTCHA → Turnstile 선택 → Secret 입력 → Save. (Secret 은 코드/저장소에 절대 넣지 않는다)
+
+### 구글 로그인 — 사용자 계정 필요
+1. Google Cloud Console → 프로젝트 생성 → APIs & Services → OAuth consent screen (External, 앱 이름 DROPZONE, 지원 이메일).
+2. Credentials → OAuth client ID → Web application. Authorized redirect URI: `https://zckhdueckqaleafhmkjl.supabase.co/auth/v1/callback`
+3. Client ID / Secret → Supabase → Authentication → Sign In / Providers → Google → Enable → 저장. (Secret 은 Supabase 화면에만)
+4. `config.js` 의 `googleLogin: true` 로 바꾸고 push.
+5. 사용자가 늘면 동의 화면을 "Publish app" (그 전에는 Test users 로 등록한 계정만 로그인 가능).
