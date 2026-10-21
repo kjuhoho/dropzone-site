@@ -1,0 +1,8 @@
+{
+  "_note": "shorts/ 시스템이 만든 영상 목록. scripts/sync_shorts.py 가 생성/갱신한다. 플랫폼 URL(external)은 업로드 후 직접 채운다.",
+  "shorts": [
+    { "id": "aruga-1", "track": "demo-drop", "video": "media/shorts/aruga-1.mp4", "poster": "media/shorts/aruga-1.jpg", "dropAt": 15, "external": {} },
+    { "id": "aruga-2", "track": "demo-drop", "video": "media/shorts/aruga-2.mp4", "poster": "media/shorts/aruga-2.jpg", "dropAt": 44, "external": {} },
+    { "id": "aruga-3", "track": "demo-drop", "video": "media/shorts/aruga-3.mp4", "poster": "media/shorts/aruga-3.jpg", "dropAt": 106, "external": {} }
+  ]
+}

@@ -1,0 +1,116 @@
+(() => {
+const $ = id => document.getElementById(id);
+const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
+const audio = new Audio(); audio.preload = "metadata";
+let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "전체", queue = [];
+
+const toast = m => { const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800); };
+const trackUrl = t => location.origin + location.pathname + "?t=" + t.slug;
+
+async function init() {
+  $("yr").textContent = new Date().getFullYear();
+  const [tj, sj] = await Promise.all([fetch("data/tracks.json").then(r => r.json()), fetch("data/shorts.json").then(r => r.json())]);
+  tracks = tj.tracks; shorts = sj.shorts;
+  const s = tj.site, p = tj.producer;
+  document.title = s.name + " — " + s.tagline;
+  $("siteName").textContent = s.name; $("footName").textContent = s.name; $("siteTag").textContent = s.tagline; $("siteSub").textContent = s.sub;
+  $("prName").textContent = p.name; $("prRole").textContent = p.role; $("prBio").textContent = p.bio; $("prAvatar").src = p.avatar;
+  renderLinks($("prLinks"), p.links, false); renderLinks($("links"), p.links, true);
+  $("moodChips").innerHTML = tj.moods.map(m => `<button class="${m === mood ? "on" : ""}">${m}</button>`).join("");
+  $("moodChips").onclick = e => { const b = e.target.closest("button"); if (!b) return; mood = b.textContent; document.querySelectorAll("#moodChips button").forEach(x => x.classList.toggle("on", x === b)); renderTracks(); };
+  renderTracks(); renderShorts();
+  const want = new URLSearchParams(location.search).get("t");
+  const i = tracks.findIndex(t => t.slug === want);
+  if (i >= 0) { load(i); toast("▶ 눌러서 재생하세요"); } // 자동재생은 브라우저가 막으므로 로드만
+}
+
+function renderTracks() {
+  $("trackList").innerHTML = tracks.map((t, i) => [t, i]).filter(([t]) => mood === "전체" || (t.moods || []).includes(mood)).map(([t, i]) => `
+    <li class="track${i === cur ? " on" : ""}" data-i="${i}"><img src="${t.cover}" alt="" loading="lazy">
+    <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}</small></div>
+    <span class="go">▶</span></li>`).join("") || `<li class="empty">이 분위기의 트랙이 아직 없어요.</li>`;
+  $("trackList").onclick = e => { const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
+}
+
+function renderShorts() {
+  const g = $("shortGrid");
+  g.innerHTML = shorts.map(s => {
+    const t = tracks.find(x => x.slug === s.track);
+    const ext = Object.entries(s.external || {}).find(([, u]) => u);
+    return `<div class="short" data-id="${s.id}"><img src="${s.poster}" alt="" loading="lazy">
+      <span class="badge">${t ? t.title : ""}</span>${ext ? `<a class="ext" href="${ext[1]}" target="_blank" rel="noopener">${ext[0]}↗</a>` : ""}
+      <button aria-label="숏폼 재생"></button></div>`;
+  }).join("");
+  g.onclick = e => {
+    const box = e.target.closest(".short"); if (!box || e.target.closest("a")) return;
+    const s = shorts.find(x => x.id === box.dataset.id);
+    const old = box.querySelector("video");
+    if (old) { old.paused ? old.play() : old.pause(); return; }
+    audio.pause();
+    g.querySelectorAll("video").forEach(v => { const im = new Image(); im.src = v.poster; v.replaceWith(im); });
+    const v = Object.assign(document.createElement("video"), { src: s.video, poster: s.poster, playsInline: true, loop: true });
+    box.querySelector("img")?.remove(); box.prepend(v); v.play();
+  };
+}
+
+function renderLinks(el, l, showEmpty) {
+  const on = Object.entries(l).filter(([, u]) => u);
+  el.innerHTML = on.length ? on.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`).join("") : (showEmpty ? `<span class="empty">링크 준비 중</span>` : "");
+}
+
+function load(i) {
+  cur = i; const t = tracks[i];
+  audio.src = t.audio; $("player").hidden = false;
+  $("pCover").src = t.cover; $("pTitle").textContent = t.title; $("pSub").textContent = "ARUGA · " + t.genre;
+  document.querySelectorAll(".track").forEach((el, k) => el.classList.toggle("on", k === i));
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: "ARUGA", artwork: [{ src: t.cover, sizes: "600x600", type: "image/jpeg" }] });
+}
+function setupViz() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = ctx.createAnalyser(); analyser.fftSize = 256; buf = new Uint8Array(analyser.frequencyBinCount);
+  const src = ctx.createMediaElementSource(audio); src.connect(analyser); analyser.connect(ctx.destination);
+}
+function play() {
+  document.querySelectorAll("#shortGrid video").forEach(v => v.pause());
+  try { setupViz(); ctx.resume(); } catch {}
+  audio.play().catch(() => toast("재생 실패 — 다시 눌러주세요"));
+}
+function toggle() { if (cur < 0) load(0); audio.paused ? play() : audio.pause(); }
+function step(d) { if (!tracks.length) return; load((cur + d + tracks.length) % tracks.length); play(); }
+const sync = () => { $("toggle").textContent = audio.paused ? "▶" : "❚❚"; $("heroPlay").textContent = audio.paused ? "▶ 지금 듣기" : "❚❚ 일시정지"; };
+
+audio.addEventListener("play", sync);
+audio.addEventListener("pause", sync);
+audio.addEventListener("ended", () => step(1));
+audio.addEventListener("loadedmetadata", () => $("dur").textContent = fmt(audio.duration));
+audio.addEventListener("timeupdate", () => { $("cur").textContent = fmt(audio.currentTime); if (audio.duration) $("seek").value = audio.currentTime / audio.duration * 1000; });
+$("seek").oninput = e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; };
+$("toggle").onclick = toggle; $("heroPlay").onclick = toggle;
+$("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
+$("share").onclick = async () => {
+  if (cur < 0) return; const t = tracks[cur], url = trackUrl(t);
+  if (navigator.share) { try { await navigator.share({ title: t.title + " — ARUGA", url }); return; } catch {} }
+  try { await navigator.clipboard.writeText(url); toast("링크를 복사했어요"); } catch { prompt("링크", url); }
+};
+if ("mediaSession" in navigator) { navigator.mediaSession.setActionHandler("previoustrack", () => step(-1)); navigator.mediaSession.setActionHandler("nexttrack", () => step(1)); }
+document.addEventListener("keydown", e => { if (e.code === "Space" && !/INPUT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); toggle(); } });
+
+// 히어로 비주얼라이저 (재생 전엔 잔잔한 파형)
+const cv = $("viz"), g = cv.getContext("2d");
+function draw(ts) {
+  const w = cv.width = cv.clientWidth * devicePixelRatio, h = cv.height = cv.clientHeight * devicePixelRatio;
+  g.clearRect(0, 0, w, h);
+  const playing = analyser && !audio.paused; if (playing) analyser.getByteFrequencyData(buf);
+  const n = 48, bw = w / n;
+  for (let i = 0; i < n; i++) {
+    const v = playing ? buf[Math.floor(i * 0.9)] / 255 : 0.12 + 0.08 * Math.sin(ts / 600 + i * 0.4);
+    const bh = Math.max(4, v * h * 0.7);
+    const grd = g.createLinearGradient(0, h, 0, h - bh); grd.addColorStop(0, "#ff2bd600"); grd.addColorStop(1, i % 2 ? "#00f0ff88" : "#ff2bd688");
+    g.fillStyle = grd; g.fillRect(i * bw + bw * 0.15, h - bh, bw * 0.7, bh);
+  }
+  requestAnimationFrame(draw);
+}
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(draw);
+init().catch(() => toast("데이터를 불러오지 못했어요"));
+})();
