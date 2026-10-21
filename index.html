@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DROPZONE — EDM을 즐기는 사람들의 공간</title>
-<meta name="description" content="EDM을 즐기는 사람들의 공간. 프로듀서의 오리지널 트랙을 바로 듣고 숏폼으로 만나보세요.">
+<title>DROPZONE — A place for people who love EDM</title>
+<meta name="description" content="A place for people who love EDM. Listen to original tracks and discover producers.">
 <meta name="theme-color" content="#07060d">
-<meta property="og:title" content="DROPZONE — EDM을 즐기는 사람들의 공간">
-<meta property="og:description" content="Featured Producer ARUGA의 오리지널 EDM을 바로 들어보세요.">
+<meta property="og:title" content="DROPZONE — A place for people who love EDM">
+<meta property="og:description" content="Listen to original EDM by featured producer ARUGA.">
 <meta property="og:image" content="media/covers/demo.jpg">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307060d'/%3E%3Cpath d='M6 24 16 6l10 18' fill='none' stroke='%2300f0ff' stroke-width='3'/%3E%3C/svg%3E">
@@ -16,24 +16,25 @@
 <body>
 <header class="top">
   <a class="logo" href="./" id="siteName">DROPZONE</a>
-  <nav><a href="#tracks">Tracks</a><a href="#shorts">Shorts</a><a href="#follow">Follow</a></nav>
+  <nav><a href="#tracks" data-i18n="nav.tracks">Tracks</a><a href="#shorts" data-i18n="nav.shorts">Shorts</a><a href="#follow" data-i18n="nav.follow">Follow</a>
+    <select id="lang" data-i18n-aria="a.lang" aria-label="Language"></select></nav>
 </header>
 
 <main>
   <section class="hero">
     <canvas id="viz" aria-hidden="true"></canvas>
     <div class="hero-inner">
-      <p class="eyebrow" id="siteTag"></p>
-      <p class="hero-sub" id="siteSub"></p>
+      <p class="eyebrow" data-i18n="tagline"></p>
+      <p class="hero-sub" data-i18n="sub"></p>
       <article class="producer" id="producer" aria-label="Featured producer">
         <img id="prAvatar" alt="" class="avatar">
         <div class="pr-body">
-          <span class="pill">FEATURED PRODUCER</span>
+          <span class="pill" data-i18n="featured"></span>
           <h1 id="prName">ARUGA</h1>
-          <p class="role" id="prRole"></p>
-          <p class="bio" id="prBio"></p>
+          <p class="role" data-i18n="role"></p>
+          <p class="bio" data-i18n="bio"></p>
           <div class="pr-actions">
-            <button id="heroPlay" class="cta">▶ 지금 듣기</button>
+            <button id="heroPlay" class="cta"></button>
             <div id="prLinks" class="chips"></div>
           </div>
         </div>
@@ -42,35 +43,35 @@
   </section>
 
   <section id="tracks">
-    <h2>Tracks</h2>
-    <div id="moodChips" class="chips filters" role="group" aria-label="분위기 필터"></div>
+    <h2 data-i18n="h.tracks"></h2>
+    <div id="moodChips" class="chips filters" role="group" data-i18n-aria="a.moods"></div>
     <ol id="trackList" class="tracks"></ol>
   </section>
 
   <section id="shorts">
-    <h2>Drops</h2>
-    <p class="sub">숏폼에서 먼저 만난 드롭, 여기서 전곡으로.</p>
+    <h2 data-i18n="h.drops"></h2>
+    <p class="sub" data-i18n="dropsSub"></p>
     <div id="shortGrid" class="shorts"></div>
   </section>
 
   <section id="follow">
-    <h2>Follow</h2>
+    <h2 data-i18n="h.follow"></h2>
     <div id="links" class="chips"></div>
   </section>
 </main>
 
-<footer>© <span id="yr"></span> <span id="footName">DROPZONE</span> · All featured music is original.</footer>
+<footer>© <span id="yr"></span> <span id="footName">DROPZONE</span> · <span data-i18n="footer"></span></footer>
 
 <div class="player" id="player" hidden>
   <img id="pCover" alt="">
   <div class="p-meta"><b id="pTitle"></b><span id="pSub"></span></div>
   <div class="p-ctl">
-    <button id="prev" aria-label="이전">⏮</button>
-    <button id="toggle" aria-label="재생/일시정지">▶</button>
-    <button id="next" aria-label="다음">⏭</button>
+    <button id="prev" data-i18n-aria="a.prev">⏮</button>
+    <button id="toggle" data-i18n-aria="a.toggle">▶</button>
+    <button id="next" data-i18n-aria="a.next">⏭</button>
   </div>
-  <div class="p-seek"><span id="cur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><span id="dur">0:00</span></div>
-  <button id="share" aria-label="공유">🔗</button>
+  <div class="p-seek"><span id="cur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0" data-i18n-aria="a.seek"><span id="dur">0:00</span></div>
+  <button id="share" data-i18n-aria="a.share">🔗</button>
 </div>
 <div class="toast" id="toast" role="status"></div>
 <script src="app.js"></script>

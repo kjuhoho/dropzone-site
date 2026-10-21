@@ -1,14 +1,10 @@
 {
   "site": {
-    "name": "DROPZONE",
-    "tagline": "EDM을 즐기는 사람들의 공간",
-    "sub": "드롭에 몸을 맡기고, 새 프로듀서를 발견하세요."
+    "name": "DROPZONE"
   },
   "producer": {
     "slug": "aruga",
     "name": "ARUGA",
-    "role": "EDM Producer",
-    "bio": "오리지널 EDM을 만드는 프로듀서. 드롭 중심의 트랙을 숏폼으로 먼저 공개합니다.",
     "avatar": "media/covers/demo.jpg",
     "links": {
       "youtube": "",
@@ -19,11 +15,10 @@
     }
   },
   "moods": [
-    "전체",
-    "파티",
-    "드라이브",
-    "운동",
-    "집중"
+    "party",
+    "drive",
+    "workout",
+    "focus"
   ],
   "tracks": [
     {
@@ -34,7 +29,6 @@
       "released": "2026-10-21",
       "cover": "media/covers/demo.jpg",
       "audio": "media/audio/demo-drop.mp3",
-      "description": "임시 데모 트랙입니다. 실제 음원은 data/tracks.json 에서 교체하세요.",
       "downloadable": false,
       "shorts": [
         "aruga-1",
@@ -44,8 +38,8 @@
       "links": {},
       "producer": "aruga",
       "moods": [
-        "파티",
-        "운동"
+        "party",
+        "workout"
       ]
     }
   ]

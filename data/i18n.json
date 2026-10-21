@@ -1,0 +1,69 @@
+{
+  "languages": { "en": "English", "ko": "한국어", "ja": "日本語", "id": "Bahasa Indonesia" },
+  "strings": {
+    "en": {
+      "tagline": "A place for people who love EDM",
+      "sub": "Surrender to the drop and discover new producers.",
+      "featured": "FEATURED PRODUCER",
+      "role": "EDM Producer",
+      "bio": "Producer of original EDM. Drops are previewed first as short-form clips.",
+      "listen": "▶ Listen now", "pause": "❚❚ Pause",
+      "nav.tracks": "Tracks", "nav.shorts": "Shorts", "nav.follow": "Follow",
+      "h.tracks": "Tracks", "h.drops": "Drops", "h.follow": "Follow",
+      "dropsSub": "Heard the drop in a short? Hear the full track here.",
+      "linksSoon": "Links coming soon", "noTracks": "No tracks in this mood yet.",
+      "mood.all": "All", "mood.party": "Party", "mood.drive": "Drive", "mood.workout": "Workout", "mood.focus": "Focus",
+      "footer": "All featured music is original.",
+      "a.moods": "Mood filter", "a.prev": "Previous", "a.next": "Next", "a.toggle": "Play / pause", "a.seek": "Seek", "a.share": "Share", "a.short": "Play short", "a.lang": "Language",
+      "t.tap": "Tap ▶ to play", "t.fail": "Playback failed — try again", "t.copied": "Link copied", "t.load": "Could not load data"
+    },
+    "ko": {
+      "tagline": "EDM을 즐기는 사람들의 공간",
+      "sub": "드롭에 몸을 맡기고, 새로운 프로듀서를 발견하세요.",
+      "featured": "추천 프로듀서",
+      "role": "EDM 프로듀서",
+      "bio": "오리지널 EDM을 만드는 프로듀서. 드롭 중심의 트랙을 숏폼으로 먼저 공개합니다.",
+      "listen": "▶ 지금 듣기", "pause": "❚❚ 일시정지",
+      "nav.tracks": "트랙", "nav.shorts": "숏폼", "nav.follow": "팔로우",
+      "h.tracks": "트랙", "h.drops": "드롭", "h.follow": "팔로우",
+      "dropsSub": "숏폼에서 먼저 만난 드롭, 여기서 전곡으로.",
+      "linksSoon": "링크 준비 중", "noTracks": "이 분위기의 트랙이 아직 없어요.",
+      "mood.all": "전체", "mood.party": "파티", "mood.drive": "드라이브", "mood.workout": "운동", "mood.focus": "집중",
+      "footer": "소개된 모든 음악은 오리지널입니다.",
+      "a.moods": "분위기 필터", "a.prev": "이전", "a.next": "다음", "a.toggle": "재생/일시정지", "a.seek": "재생 위치", "a.share": "공유", "a.short": "숏폼 재생", "a.lang": "언어",
+      "t.tap": "▶ 눌러서 재생하세요", "t.fail": "재생 실패 — 다시 눌러주세요", "t.copied": "링크를 복사했어요", "t.load": "데이터를 불러오지 못했어요"
+    },
+    "ja": {
+      "tagline": "EDMを愛する人たちのための場所",
+      "sub": "ドロップに身を任せて、新しいプロデューサーを見つけよう。",
+      "featured": "注目のプロデューサー",
+      "role": "EDMプロデューサー",
+      "bio": "オリジナルEDMを制作するプロデューサー。ドロップをまずショート動画で公開します。",
+      "listen": "▶ 今すぐ聴く", "pause": "❚❚ 一時停止",
+      "nav.tracks": "トラック", "nav.shorts": "ショート", "nav.follow": "フォロー",
+      "h.tracks": "トラック", "h.drops": "ドロップ", "h.follow": "フォロー",
+      "dropsSub": "ショートで出会ったドロップを、フルでどうぞ。",
+      "linksSoon": "リンク準備中", "noTracks": "このムードのトラックはまだありません。",
+      "mood.all": "すべて", "mood.party": "パーティー", "mood.drive": "ドライブ", "mood.workout": "ワークアウト", "mood.focus": "集中",
+      "footer": "掲載している楽曲はすべてオリジナルです。",
+      "a.moods": "ムードで絞り込み", "a.prev": "前へ", "a.next": "次へ", "a.toggle": "再生/一時停止", "a.seek": "再生位置", "a.share": "共有", "a.short": "ショートを再生", "a.lang": "言語",
+      "t.tap": "▶ をタップして再生", "t.fail": "再生に失敗しました。もう一度お試しください", "t.copied": "リンクをコピーしました", "t.load": "データを読み込めませんでした"
+    },
+    "id": {
+      "tagline": "Ruang untuk para pecinta EDM",
+      "sub": "Nikmati drop-nya dan temukan produser baru.",
+      "featured": "PRODUSER UNGGULAN",
+      "role": "Produser EDM",
+      "bio": "Produser EDM orisinal. Drop-nya dirilis lebih dulu dalam bentuk video pendek.",
+      "listen": "▶ Dengarkan", "pause": "❚❚ Jeda",
+      "nav.tracks": "Lagu", "nav.shorts": "Shorts", "nav.follow": "Ikuti",
+      "h.tracks": "Lagu", "h.drops": "Drop", "h.follow": "Ikuti",
+      "dropsSub": "Sudah dengar drop-nya di video pendek? Dengarkan lagu lengkapnya di sini.",
+      "linksSoon": "Tautan segera hadir", "noTracks": "Belum ada lagu untuk suasana ini.",
+      "mood.all": "Semua", "mood.party": "Pesta", "mood.drive": "Berkendara", "mood.workout": "Olahraga", "mood.focus": "Fokus",
+      "footer": "Semua musik yang ditampilkan adalah karya orisinal.",
+      "a.moods": "Filter suasana", "a.prev": "Sebelumnya", "a.next": "Berikutnya", "a.toggle": "Putar / jeda", "a.seek": "Posisi putar", "a.share": "Bagikan", "a.short": "Putar video pendek", "a.lang": "Bahasa",
+      "t.tap": "Ketuk ▶ untuk memutar", "t.fail": "Gagal memutar — coba lagi", "t.copied": "Tautan disalin", "t.load": "Gagal memuat data"
+    }
+  }
+}

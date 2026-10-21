@@ -2,33 +2,34 @@
 const $ = id => document.getElementById(id);
 const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
 const audio = new Audio(); audio.preload = "metadata";
-let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "전체", queue = [];
+let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "all", I = {}, lang = "en", moodKeys = [], producer = {};
+const T = k => (I.strings[lang] && I.strings[lang][k]) || I.strings.en[k] || k;
 
 const toast = m => { const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800); };
 const trackUrl = t => location.origin + location.pathname + "?t=" + t.slug;
 
 async function init() {
   $("yr").textContent = new Date().getFullYear();
-  const [tj, sj] = await Promise.all([fetch("data/tracks.json").then(r => r.json()), fetch("data/shorts.json").then(r => r.json())]);
+  const [tj, sj, i18n] = await Promise.all(["tracks", "shorts", "i18n"].map(n => fetch(`data/${n}.json`).then(r => r.json())));
+  I = i18n;
   tracks = tj.tracks; shorts = sj.shorts;
-  const s = tj.site, p = tj.producer;
-  document.title = s.name + " — " + s.tagline;
-  $("siteName").textContent = s.name; $("footName").textContent = s.name; $("siteTag").textContent = s.tagline; $("siteSub").textContent = s.sub;
-  $("prName").textContent = p.name; $("prRole").textContent = p.role; $("prBio").textContent = p.bio; $("prAvatar").src = p.avatar;
-  renderLinks($("prLinks"), p.links, false); renderLinks($("links"), p.links, true);
-  $("moodChips").innerHTML = tj.moods.map(m => `<button class="${m === mood ? "on" : ""}">${m}</button>`).join("");
-  $("moodChips").onclick = e => { const b = e.target.closest("button"); if (!b) return; mood = b.textContent; document.querySelectorAll("#moodChips button").forEach(x => x.classList.toggle("on", x === b)); renderTracks(); };
-  renderTracks(); renderShorts();
+  const s = tj.site, p = tj.producer; producer = p; moodKeys = ["all", ...tj.moods];
+  $("siteName").textContent = s.name; $("footName").textContent = s.name; $("prName").textContent = p.name; $("prAvatar").src = p.avatar;
+  $("lang").innerHTML = Object.entries(I.languages).map(([k, n]) => `<option value="${k}">${n}</option>`).join("");
+  $("lang").onchange = e => setLang(e.target.value);
+  $("moodChips").onclick = e => { const b = e.target.closest("button"); if (!b) return; mood = b.dataset.m; renderMoods(); renderTracks(); };
+  lang = pickLang(); $("lang").value = lang;
+  applyLang(); renderTracks(); renderShorts();
   const want = new URLSearchParams(location.search).get("t");
   const i = tracks.findIndex(t => t.slug === want);
-  if (i >= 0) { load(i); toast("▶ 눌러서 재생하세요"); } // 자동재생은 브라우저가 막으므로 로드만
+  if (i >= 0) { load(i); toast(T("t.tap")); } // 자동재생은 브라우저가 막으므로 로드만
 }
 
 function renderTracks() {
-  $("trackList").innerHTML = tracks.map((t, i) => [t, i]).filter(([t]) => mood === "전체" || (t.moods || []).includes(mood)).map(([t, i]) => `
+  $("trackList").innerHTML = tracks.map((t, i) => [t, i]).filter(([t]) => mood === "all" || (t.moods || []).includes(mood)).map(([t, i]) => `
     <li class="track${i === cur ? " on" : ""}" data-i="${i}"><img src="${t.cover}" alt="" loading="lazy">
     <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}</small></div>
-    <span class="go">▶</span></li>`).join("") || `<li class="empty">이 분위기의 트랙이 아직 없어요.</li>`;
+    <span class="go">▶</span></li>`).join("") || `<li class="empty">${T("noTracks")}</li>`;
   $("trackList").onclick = e => { const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
 }
 
@@ -39,7 +40,7 @@ function renderShorts() {
     const ext = Object.entries(s.external || {}).find(([, u]) => u);
     return `<div class="short" data-id="${s.id}"><img src="${s.poster}" alt="" loading="lazy">
       <span class="badge">${t ? t.title : ""}</span>${ext ? `<a class="ext" href="${ext[1]}" target="_blank" rel="noopener">${ext[0]}↗</a>` : ""}
-      <button aria-label="숏폼 재생"></button></div>`;
+      <button aria-label="${T("a.short")}"></button></div>`;
   }).join("");
   g.onclick = e => {
     const box = e.target.closest(".short"); if (!box || e.target.closest("a")) return;
@@ -53,11 +54,27 @@ function renderShorts() {
   };
 }
 
+function renderAllLinks() { renderLinks($("prLinks"), producer.links, false); renderLinks($("links"), producer.links, true); }
 function renderLinks(el, l, showEmpty) {
   const on = Object.entries(l).filter(([, u]) => u);
-  el.innerHTML = on.length ? on.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`).join("") : (showEmpty ? `<span class="empty">링크 준비 중</span>` : "");
+  el.innerHTML = on.length ? on.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`).join("") : (showEmpty ? `<span class="empty">${T("linksSoon")}</span>` : "");
 }
 
+function pickLang() {
+  let l = null; try { l = new URLSearchParams(location.search).get("lang") || localStorage.getItem("lang"); } catch {}
+  return I.languages[l] ? l : "en";
+}
+function renderMoods() {
+  $("moodChips").innerHTML = moodKeys.map(m => `<button data-m="${m}" class="${m === mood ? "on" : ""}">${T("mood." + m)}</button>`).join("");
+}
+function setLang(l) { lang = l; try { localStorage.setItem("lang", l); } catch {} applyLang(); renderTracks(); renderShorts(); }
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = $("siteName").textContent + " — " + T("tagline");
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = T(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => el.setAttribute("aria-label", T(el.dataset.i18nAria)));
+  renderMoods(); renderAllLinks(); sync();
+}
 function load(i) {
   cur = i; const t = tracks[i];
   audio.src = t.audio; $("player").hidden = false;
@@ -74,11 +91,11 @@ function setupViz() {
 function play() {
   document.querySelectorAll("#shortGrid video").forEach(v => v.pause());
   try { setupViz(); ctx.resume(); } catch {}
-  audio.play().catch(() => toast("재생 실패 — 다시 눌러주세요"));
+  audio.play().catch(() => toast(T("t.fail")));
 }
 function toggle() { if (cur < 0) load(0); audio.paused ? play() : audio.pause(); }
 function step(d) { if (!tracks.length) return; load((cur + d + tracks.length) % tracks.length); play(); }
-const sync = () => { $("toggle").textContent = audio.paused ? "▶" : "❚❚"; $("heroPlay").textContent = audio.paused ? "▶ 지금 듣기" : "❚❚ 일시정지"; };
+const sync = () => { $("toggle").textContent = audio.paused ? "▶" : "❚❚"; $("heroPlay").textContent = T(audio.paused ? "listen" : "pause"); };
 
 audio.addEventListener("play", sync);
 audio.addEventListener("pause", sync);
@@ -91,7 +108,7 @@ $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
 $("share").onclick = async () => {
   if (cur < 0) return; const t = tracks[cur], url = trackUrl(t);
   if (navigator.share) { try { await navigator.share({ title: t.title + " — ARUGA", url }); return; } catch {} }
-  try { await navigator.clipboard.writeText(url); toast("링크를 복사했어요"); } catch { prompt("링크", url); }
+  try { await navigator.clipboard.writeText(url); toast(T("t.copied")); } catch { prompt("URL", url); }
 };
 if ("mediaSession" in navigator) { navigator.mediaSession.setActionHandler("previoustrack", () => step(-1)); navigator.mediaSession.setActionHandler("nexttrack", () => step(1)); }
 document.addEventListener("keydown", e => { if (e.code === "Space" && !/INPUT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); toggle(); } });
@@ -112,5 +129,5 @@ function draw(ts) {
   requestAnimationFrame(draw);
 }
 if (!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(draw);
-init().catch(() => toast("데이터를 불러오지 못했어요"));
+init().catch(() => toast(T("t.load")));
 })();
