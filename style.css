@@ -255,3 +255,12 @@ dialog #nId,dialog #acConfirm{width:100%;background:var(--bg);color:var(--fg);bo
 .rep .p-body{margin-top:6px}
 .rep a.act{text-decoration:none}
 @media(max-width:560px){.view{margin-left:0}}
+
+/* ===== 운영 도구 ===== */
+.hid{display:inline-block;margin:4px 0;padding:2px 10px;border-radius:99px;background:#ffb86b22;color:#ffcf9b;font-size:12px}
+.ban-note{margin:12px 16px;padding:12px 14px;border:1px solid #ff6b8b66;border-radius:12px;background:#ff6b8b14;color:#ffb3c2;font-size:14px}
+.susp-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.susp-row select,.susp-row input{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font:inherit;font-size:13px}
+.susp-row input{flex:1;min-width:120px}
+.sbtn{padding:6px 14px;border-radius:99px;font-size:13px;color:var(--dim)}
+.sbtn.on{background:#ffffff14;color:var(--fg);font-weight:700}

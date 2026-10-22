@@ -1,6 +1,7 @@
 (() => {
 const { $, esc } = DZ, B = window.DZB, T = (k, v) => DZ.T(k, v);
 const PAGE = 20, WAIT = { post: 15000, cmt: 4000 };
+let bansRows = [], adminCount = 0;
 let viewMode = (() => { try { return localStorage.getItem("dz_view") === "list" ? "list" : "feed"; } catch { return "feed"; } })(), pending = [], reportRows = [];
 let route = { type: "home" }, sort = "latest", posts = [], hasMore = false, offset = 0, comments = [], single = null;
 let postBoard = "lounge", last = { post: 0, cmt: 0 }, tagsCache = null, loadSeq = 0;
@@ -53,7 +54,7 @@ const attIcons = p => { const at = p.attachments || []; return (at.some(a => a.t
 function parse() {
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, "")), [k, ...r] = h.split("/"), v = r.join("/");
   if (k === "b" && B.BOARDS.includes(v)) return { type: "board", board: v };
-  if (k === "admin") return { type: "admin" };
+  if (k === "admin") return { type: "admin", tab: v === "bans" ? "bans" : "reports" };
   if (k === "p" && +v) return { type: "post", id: +v };
   if (k === "u" && v) return { type: "user", user: v };
   if (k === "t" && v) return { type: "search", q: "#" + v, tag: v };
@@ -68,7 +69,7 @@ function renderNav() {
   const ICON = { lounge: "💬", share: "🎧", feedback: "🎚️", producers: "🎛️", gear: "🔌", events: "🎪", collab: "🤝", memes: "😂" };
   const me = B.user();
   $("boardNav").innerHTML = item("#/", T("c.home"), route.type === "home", "🏠") + B.BOARDS.map(b => item("#/b/" + b, boardName(b), route.type === "board" && route.board === b, ICON[b])).join("")
-    + (me && me.isAdmin ? item("#/admin", T("c.admin"), route.type === "admin", "🛡️") : "");
+    + (me && me.isAdmin ? item("#/admin", T("c.admin") + (adminCount ? ` (${adminCount})` : ""), route.type === "admin", "🛡️") : "");
 }
 
 /* ---------- 상단 헤더(제목/정렬) ---------- */
@@ -84,10 +85,16 @@ function renderHead() {
   const tabs = list ? `<div class="view" role="group" aria-label="${esc(T("c.viewLabel"))}"><button data-view="feed" class="${viewMode === "feed" ? "on" : ""}">${esc(T("c.viewFeed"))}</button><button data-view="list" class="${viewMode === "list" ? "on" : ""}">${esc(T("c.viewList"))}</button></div><div class="sort" role="tablist" aria-label="${esc(T("c.sortLabel"))}">
     <button role="tab" data-sort="latest" aria-selected="${sort === "latest"}" class="${sort === "latest" ? "on" : ""}">${esc(T("c.sortLatest"))}</button>
     <button role="tab" data-sort="top" aria-selected="${sort === "top"}" class="${sort === "top" ? "on" : ""}">${esc(T("c.sortTop"))}</button></div>` : "";
-  $("viewHead").innerHTML = `<div class="vh-row">${back ? `<button class="back" id="backBtn" aria-label="${esc(T("c.back"))}">←</button>` : ""}<h1 class="vh-title">${esc(title)}</h1>${tabs}</div>${desc ? `<p class="vh-desc">${esc(desc)}</p>` : ""}`;
+  $("viewHead").innerHTML = `<div class="vh-row">${back ? `<button class="back" id="backBtn" aria-label="${esc(T("c.back"))}">←</button>` : ""}<h1 class="vh-title">${esc(title)}</h1>${tabs}${route.type === "admin" ? `<div class="sort"><a class="sbtn ${route.tab === "reports" ? "on" : ""}" href="#/admin">${esc(T("c.tabReports"))}</a><a class="sbtn ${route.tab === "bans" ? "on" : ""}" href="#/admin/bans">${esc(T("c.tabBans"))}</a></div>` : ""}</div>${desc ? `<p class="vh-desc">${esc(desc)}</p>` : ""}`;
   if (back) $("backBtn").onclick = () => (history.length > 1 ? history.back() : go("#/"));
   $("viewHead").querySelectorAll("[data-sort]").forEach(b => b.onclick = () => { sort = b.dataset.sort; renderHead(); loadList(true); });
   $("viewHead").querySelectorAll("[data-view]").forEach(b => b.onclick = () => { viewMode = b.dataset.view; try { localStorage.setItem("dz_view", viewMode); } catch {} renderHead(); renderList(); });
+}
+
+function banNote() {
+  const u = B.user(); if (!u || !u.ban) return "";
+  const until = u.ban.until ? T("c.untilDate", { d: new Date(u.ban.until).toLocaleString(DZ.lang) }) : T("c.untilPerm");
+  return `<div class="ban-note">⛔ ${esc(T("c.suspendedBanner", { until, reason: u.ban.reason ? T("c.reasonLbl", { r: u.ban.reason }) : "" }))}</div>`;
 }
 
 /* ---------- 작성창 ---------- */
@@ -110,6 +117,7 @@ function renderComposer() {
   const u = B.user(), box = $("composerBox");
   if (route.type === "post" || route.type === "admin") { box.innerHTML = ""; return; }
   if (!u) { box.innerHTML = `<div class="login-cta"><span>${esc(T("c.loginToPost"))}</span><button class="cta" id="loginToPost">${esc(T("auth.login"))}</button></div>`; $("loginToPost").onclick = () => DZ.openAuth("login"); return; }
+  if (u.ban) { box.innerHTML = banNote(); return; }
   const prev = $("cBody") ? [$("cTitle").value, $("cBody").value] : ["", ""];
   if (route.type === "board") postBoard = route.board;
   box.innerHTML = `<form class="composer" id="composer">
@@ -176,6 +184,7 @@ function card(p, detail) {
     ${avatar(p.username)}
     <div class="p-main">
       <div class="p-top">${userLink(p.username)}<span class="dot">·</span><time datetime="${esc(p.created_at)}">${esc(DZ.ago(p.created_at))}</time><a class="btag" href="#/b/${p.board}">${esc(boardName(p.board))}</a></div>
+      ${p.hidden ? `<div class="hid">${esc(T("c.hiddenTag"))}</div>` : ""}
       ${showTitle(p) ? `<h3 class="p-title">${esc(p.title)}</h3>` : ""}
       <div class="p-body${detail ? "" : " clamp"}">${rich(p.body)}</div>
       ${media(p)}
@@ -187,6 +196,7 @@ function cmtCard(c) {
   const me = B.user(), mine = me && me.id === c.author, canDel = mine || (me && me.isAdmin);
   return `<div class="cmt" data-c="${c.id}">${avatar(c.username)}<div class="p-main">
     <div class="p-top">${userLink(c.username)}<span class="dot">·</span><time datetime="${esc(c.created_at)}">${esc(DZ.ago(c.created_at))}</time></div>
+    ${c.hidden ? `<div class="hid">${esc(T("c.hiddenTag"))}</div>` : ""}
     <div class="p-body">${rich(c.body)}</div>
     <div class="acts">${me && !mine ? `<button class="act sub" data-a="reportc" aria-label="${esc(T("c.report"))}">⚑</button>` : ""}${canDel ? `<button class="act del" data-a="delc" aria-label="${esc(T("c.delete"))}">🗑</button>` : ""}</div></div></div>`;
 }
@@ -202,7 +212,7 @@ function renderDetail() {
   if (!single) { $("postList").innerHTML = `<p class="empty">${esc(T("c.noPostFound"))}</p>`; $("more").hidden = true; return; }
   const me = B.user();
   $("postList").innerHTML = card(single, true) + `<div class="thread">
-    ${me ? `<form class="cmt-form" id="cmtForm">${avatar(me.username || "?")}<input id="cmtIn" maxlength="500" placeholder="${esc(T("c.commentPh"))}" autocomplete="off"><button class="cta small">${esc(T("c.send"))}</button></form>` : `<button class="linkish" data-a="login">${esc(T("c.loginToPost"))}</button>`}
+    ${me && me.ban ? banNote() : me ? `<form class="cmt-form" id="cmtForm">${avatar(me.username || "?")}<input id="cmtIn" maxlength="500" placeholder="${esc(T("c.commentPh"))}" autocomplete="off"><button class="cta small">${esc(T("c.send"))}</button></form>` : `<button class="linkish" data-a="login">${esc(T("c.loginToPost"))}</button>`}
     <div id="cmtList">${comments.map(cmtCard).join("")}</div></div>`;
   $("more").hidden = true;
 }
@@ -227,17 +237,26 @@ async function loadPost() {
 }
 
 /* ---------- 관리자: 신고 ---------- */
+function renderBans() {
+  $("more").hidden = true;
+  $("postList").innerHTML = bansRows.length ? bansRows.map(b => `<div class="rep brow"><div class="p-top"><b>@${esc(b.username)}</b><span class="dot">·</span><span>${esc(b.until ? T("c.untilDate", { d: new Date(b.until).toLocaleString(DZ.lang) }) : T("c.untilPerm"))}</span></div>${b.reason ? `<div class="fine">${esc(b.reason)}</div>` : ""}<div class="acts"><button class="act" data-a="aunban" data-uid="${esc(b.user_id)}">${esc(T("c.unban"))}</button></div></div>`).join("") : `<p class="empty">${esc(T("c.noBans"))}</p>`;
+}
 function renderAdmin() {
+  if (route.tab === "bans") return renderBans();
   $("more").hidden = true;
   $("postList").innerHTML = reportRows.length ? reportRows.map(r => `<div class="rep" data-rid="${r.id}" data-type="${esc(r.target_type)}" data-tid="${r.target_id}">
     <div class="p-top"><span class="rtype">${esc(T(r.target_type === "post" ? "c.typePost" : "c.typeComment"))}</span><span class="dot">·</span><span>${esc(T("c.byReporter", { u: r.reporter_name }))}</span><span class="dot">·</span><time>${esc(DZ.ago(r.created_at))}</time></div>
     <div class="p-body">${r.preview ? esc(r.preview) : `<i>${esc(T("c.adminGone"))}</i>`}</div>
     ${r.reason ? `<div class="fine">“${esc(r.reason)}”</div>` : ""}
-    <div class="acts"><a class="act" href="#/p/${r.post_id}">${esc(T("c.adminOpen"))}</a>${r.preview ? `<button class="act del" data-a="adel">${esc(T("c.adminDelete"))}</button>` : ""}<button class="act" data-a="adis">${esc(T("c.adminDismiss"))}</button></div></div>`).join("") : `<p class="empty">${esc(T("c.adminNone"))}</p>`;
+    <div class="acts"><a class="act" href="#/p/${r.post_id}">${esc(T("c.adminOpen"))}</a>${r.preview ? `<button class="act del" data-a="adel">${esc(T("c.adminDelete"))}</button>` : ""}${r.target_hidden ? `<button class="act" data-a="aunhide">${esc(T("c.restore"))}</button>` : ""}<button class="act" data-a="adis">${esc(T("c.adminDismiss"))}</button></div>
+    ${r.target_author && r.preview ? `<div class="susp-row"><select class="susp" aria-label="${esc(T("c.suspendBtn"))}"><option value="1">${esc(T("c.nDays", { n: 1 }))}</option><option value="7">${esc(T("c.nDays", { n: 7 }))}</option><option value="30">${esc(T("c.nDays", { n: 30 }))}</option><option value="0">${esc(T("c.permanent"))}</option></select><input class="susp-why" maxlength="100" placeholder="${esc(T("c.suspendReason"))}"><button class="act del" data-a="aban" data-uid="${esc(r.target_author)}">${esc(T("c.suspendBtn"))} @${esc(r.target_author_name || "")}</button></div>` : ""}</div>`).join("") : `<p class="empty">${esc(T("c.adminNone"))}</p>`;
 }
 async function loadAdmin() {
   const my = ++loadSeq; $("postList").innerHTML = `<p class="fine pad">${esc(T("c.loading"))}</p>`; $("more").hidden = true;
-  try { const rows = await B.reports(); if (my !== loadSeq) return; reportRows = rows || []; renderAdmin(); }
+  try {
+    if (route.tab === "bans") { const rows = await B.bans(); if (my !== loadSeq) return; bansRows = rows || []; renderBans(); }
+    else { const rows = await B.reports(); if (my !== loadSeq) return; reportRows = rows || []; adminCount = reportRows.length; renderNav(); renderAdmin(); }
+  }
   catch { if (my === loadSeq) $("postList").innerHTML = `<p class="empty">${esc(T("c.loadFail"))}</p>`; }
 }
 const reload = () => route.type === "post" ? loadPost() : route.type === "admin" ? loadAdmin() : loadList(true);
@@ -262,6 +281,7 @@ function onRoute() {
   if (route.type === "search" || route.type === "user") sort = "latest";
   $("q").value = route.type === "search" ? route.q : "";
   renderNav(); renderHead(); renderComposer();
+  if (B.user() && B.user().isAdmin && route.type !== "admin") B.reports().then(r => { adminCount = (r || []).length; renderNav(); }).catch(() => {});
   reload();
   window.scrollTo({ top: 0 });
 }
@@ -277,6 +297,17 @@ $("postList").onclick = async e => {
   const yt = e.target.closest("[data-yt]");
   if (yt) { yt.outerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube-nocookie.com/embed/${yt.dataset.yt}?autoplay=1" title="YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`; return; }
   const el = e.target.closest("[data-a]"), art = e.target.closest(".post");
+  if (el && el.dataset.a === "aunban") { try { await B.adminUnban(el.dataset.uid); DZ.toast(T("c.unbanOk")); await loadAdmin(); } catch (ex) { DZ.toast(DZ.errText(ex)); } return; }
+  if (el && el.dataset.a === "aban") {
+    const row = el.closest(".rep"), days = +row.querySelector(".susp").value, why = row.querySelector(".susp-why").value.trim();
+    try { await B.adminBan(el.dataset.uid, days || null, why); DZ.toast(T("c.suspendOk")); } catch (ex) { DZ.toast(DZ.errText(ex)); }
+    return;
+  }
+  if (el && el.dataset.a === "aunhide") {
+    const row = el.closest(".rep");
+    try { await B.unhide(row.dataset.type, +row.dataset.tid); DZ.toast(T("c.restored")); await loadAdmin(); } catch (ex) { DZ.toast(DZ.errText(ex)); }
+    return;
+  }
   if (el && (el.dataset.a === "adel" || el.dataset.a === "adis")) {
     const row = el.closest(".rep"), type = row.dataset.type, tid = +row.dataset.tid, rid = +row.dataset.rid;
     try {

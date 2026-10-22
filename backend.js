@@ -47,6 +47,7 @@ function supabase() {
       if (/rate_limit/.test(msg) || /over_.*rate_limit/.test(code)) code = "cooldown";
       else if (/daily_limit/.test(msg)) code = "daily";
       else if (/captcha/i.test(code + msg)) code = "captcha";
+      else if (/new_account_limit/.test(msg)) code = "newAccount";
       else if (code === "23505") code = "taken";
       else if (/bad_username/.test(msg)) code = "bad_username";
       throw Object.assign(fail(code, msg), { status: r.status });
@@ -61,7 +62,8 @@ function supabase() {
       const [p] = await raw(`/rest/v1/profiles?id=eq.${sess.user.id}&select=username,needs_username`);
       if (p && sess) {
         let adm = false; try { adm = (await raw("/rest/v1/rpc/is_admin", { method: "POST", body: {} })) === true; } catch {}
-        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm } });
+        let ban = null; try { ban = await raw("/rest/v1/rpc/my_ban", { method: "POST", body: {} }); } catch {}
+        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm, ban: ban || null } });
       }
       else if (!p) save(null); // 계정이 삭제된 경우
     } catch (e) { if (e.status === 401) save(null); }
@@ -118,6 +120,10 @@ function supabase() {
     },
     async removeFiles(paths) { const ps = (paths || []).filter(p => PATH_RE.test(p || "")); if (!ps.length) return; try { await raw("/storage/v1/object/community", { method: "DELETE", body: { prefixes: ps } }); } catch {} },
     reports: () => raw("/rest/v1/reports_feed?order=created_at.desc&limit=100"),
+    bans: () => raw("/rest/v1/bans_feed?order=created_at.desc&limit=100"),
+    adminBan: (uid, days, why) => raw("/rest/v1/rpc/admin_ban", { method: "POST", body: { target: uid, days: days || null, why: why || null } }),
+    adminUnban: uid => raw("/rest/v1/rpc/admin_unban", { method: "POST", body: { target: uid } }),
+    unhide: (type, id) => raw(`/rest/v1/${type === "post" ? "posts" : "comments"}?id=eq.${+id}`, { method: "PATCH", body: { hidden: false }, prefer: "return=minimal" }),
     dismissReport: id => raw(`/rest/v1/reports?id=eq.${+id}`, { method: "DELETE" }),
     deleteReportsFor: (type, id) => raw(`/rest/v1/reports?target_type=eq.${q_(type)}&target_id=eq.${+id}`, { method: "DELETE" }),
     async posts({ board, sort = "latest", q, author, offset = 0, limit = 20 } = {}) {
@@ -133,7 +139,7 @@ function supabase() {
     async post(id) { const rows = await withLiked(await raw(`/rest/v1/posts_feed?id=eq.${+id}`)); return rows[0] || null; },
     async texts() { return raw("/rest/v1/posts_feed?select=title,body&order=created_at.desc&limit=200"); },
     async createPost(board, title, body, attachments = []) { const r = await raw("/rest/v1/posts", { method: "POST", body: { board, title, body, attachments }, prefer: "return=representation" }); return r && r[0] && r[0].id; },
-    async report(type, id, reason) { try { await raw("/rest/v1/reports", { method: "POST", body: { target_type: type, target_id: id, reason: reason || null }, prefer: "return=minimal" }); } catch (e) { if (e.code === "taken" || /duplicate|23505/.test(e.message)) throw fail("reportedAlready"); throw e; } },
+    async report(type, id, reason) { try { await raw("/rest/v1/reports", { method: "POST", body: { target_type: type, target_id: id, reason: reason || null }, prefer: "return=minimal" }); } catch (e) { if (e.code === "taken" || /duplicate|23505/.test(e.message)) throw fail("reportedAlready"); if (e.code === "42501") throw fail("reportAge"); throw e; } },
     deletePost: id => raw(`/rest/v1/posts?id=eq.${id}`, { method: "DELETE" }),
     comments: id => raw(`/rest/v1/comments_feed?post_id=eq.${id}&order=created_at.asc&limit=200`),
     createComment: (post_id, body) => raw("/rest/v1/comments", { method: "POST", body: { post_id, body }, prefer: "return=minimal" }),
@@ -152,7 +158,7 @@ function demo() {
   const db = () => rd(K) || { users: {}, posts: [], comments: [], likes: [], seq: 1, session: null };
   const put = d => wr(K, d);
   const hash = async (id, pw) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(id.toLowerCase() + ":" + pw)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); };
-  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, isAdmin: d.users[d.session].username === "admin" } : null; };
+  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, isAdmin: d.users[d.session].username === "admin", ban: (d.bans || {})[d.session] || null } : null; };
   const need = () => { const u = me(); if (!u) throw fail("auth"); return u; };
   return {
     live: false,
@@ -186,7 +192,7 @@ function demo() {
     },
     async post(id) { return (await this.posts({ limit: 1e6 })).find(p => p.id === +id) || null; },
     async texts() { return db().posts.slice(-200).map(p => ({ title: p.title, body: p.body })); },
-    async createPost(board, title, body, attachments = []) { const u = need(), d = db(), id = d.seq++; d.posts.push({ id, board, title, body, attachments, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); return id; },
+    async createPost(board, title, body, attachments = []) { const u = need(); if (u.ban) throw fail("banned"); const d = db(), id = d.seq++; d.posts.push({ id, board, title, body, attachments, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); return id; },
     fileUrl: p => typeof p === "string" && p.startsWith("data:") ? p : null,
     async upload(file) {
       if (file.size > 1.5e6) throw fail("demoFile");
@@ -197,10 +203,14 @@ function demo() {
     async reports() {
       const u = need(); if (!u.isAdmin) return []; const d = db();
       return (d.reports || []).slice().reverse().map(r => { const c = r.target_type === "comment" ? d.comments.find(x => x.id === r.target_id) : null, p = r.target_type === "post" ? d.posts.find(x => x.id === r.target_id) : null;
-        return { ...r, preview: p ? (p.title + " — " + p.body).slice(0, 300) : c ? c.body.slice(0, 300) : null, attachments: p ? p.attachments || [] : null, post_id: c ? c.post_id : r.target_id }; });
+        const t = p || c; return { ...r, preview: p ? (p.title + " — " + p.body).slice(0, 300) : c ? c.body.slice(0, 300) : null, attachments: p ? p.attachments || [] : null, post_id: c ? c.post_id : r.target_id, target_author: t ? t.author : null, target_author_name: t ? t.username : null, target_hidden: !!(t && t.hidden) }; });
     },
     async dismissReport(id) { const u = need(); if (!u.isAdmin) return; const d = db(); d.reports = (d.reports || []).filter(r => r.id !== id); put(d); },
     async deleteReportsFor(type, id) { const u = need(); if (!u.isAdmin) return; const d = db(); d.reports = (d.reports || []).filter(r => !(r.target_type === type && r.target_id === id)); put(d); },
+    async bans() { const u = need(); if (!u.isAdmin) return []; const d = db(); return Object.entries(d.bans || {}).map(([k, b]) => ({ user_id: k, username: d.users[k] ? d.users[k].username : k, until: b.until, reason: b.reason, created_at: b.at })); },
+    async adminBan(uid, days, why) { const u = need(); if (!u.isAdmin) return; const d = db(); d.bans = d.bans || {}; d.bans[uid] = { until: days ? new Date(Date.now() + days * 864e5).toISOString() : null, reason: why || null, at: new Date().toISOString() }; put(d); },
+    async adminUnban(uid) { const u = need(); if (!u.isAdmin) return; const d = db(); if (d.bans) delete d.bans[uid]; put(d); },
+    async unhide(type, id) { const u = need(); if (!u.isAdmin) return; const d = db(), row = (type === "post" ? d.posts : d.comments).find(x => x.id === id); if (row) row.hidden = false; put(d); },
     async deletePost(id) { const u = need(), d = db(); d.posts = d.posts.filter(p => !(p.id === id && (p.author === u.id || u.isAdmin))); d.comments = d.comments.filter(c => c.post_id !== id); d.likes = d.likes.filter(l => l.post_id !== id); put(d); },
     async comments(id) { return db().comments.filter(c => c.post_id === id); },
     async createComment(post_id, body) { const u = need(), d = db(); d.comments.push({ id: d.seq++, post_id, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); },
