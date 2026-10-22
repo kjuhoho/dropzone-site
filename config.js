@@ -6,6 +6,6 @@ window.DZ_CONFIG = {
   supabaseKey: "sb_publishable_KrTLngzV870K5kzoZZKTxw_dK-2dYGl", // publishable(공개용) 키. secret 키는 절대 넣지 않는다
   googleLogin: true,    // Supabase 에서 Google provider 가 켜져 있음
   turnstileSiteKey: "0x4AAAAAAFfBKS-UCchl4tTB", // Cloudflare Turnstile 사이트 키(공개용). 비우면 봇 확인 생략
-  contact: "",          // 문의 이메일(선택). 채우면 약관 페이지에 표시
+  contact: "kjuhoho@gnu.ac.kr", // 문의 이메일. 약관 페이지에 표시됨
   emailDomain: "dropzone-users.app" // ID 를 내부용 이메일로 바꿀 때 쓰는 가짜 도메인 (실제 메일은 발송되지 않음)
 };
