@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kjuhoho.github.io/dropzone-site/sitemap.xml

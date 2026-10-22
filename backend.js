@@ -59,11 +59,11 @@ function supabase() {
   async function profile() {
     if (!sess) return;
     try {
-      const [p] = await raw(`/rest/v1/profiles?id=eq.${sess.user.id}&select=username,needs_username`);
+      const [p] = await raw(`/rest/v1/profiles?id=eq.${sess.user.id}&select=username,needs_username,accent`);
       if (p && sess) {
         let adm = false; try { adm = (await raw("/rest/v1/rpc/is_admin", { method: "POST", body: {} })) === true; } catch {}
         let ban = null; try { ban = await raw("/rest/v1/rpc/my_ban", { method: "POST", body: {} }); } catch {}
-        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm, ban: ban || null } });
+        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm, ban: ban || null, accent: p.accent == null ? null : p.accent } });
       }
       else if (!p) save(null); // 계정이 삭제된 경우
     } catch (e) { if (e.status === 401) save(null); }
@@ -123,11 +123,30 @@ function supabase() {
     bans: () => raw("/rest/v1/bans_feed?order=created_at.desc&limit=100"),
     adminBan: (uid, days, why) => raw("/rest/v1/rpc/admin_ban", { method: "POST", body: { target: uid, days: days || null, why: why || null } }),
     adminUnban: uid => raw("/rest/v1/rpc/admin_unban", { method: "POST", body: { target: uid } }),
+    async profileOf(name) { const r = await raw(`/rest/v1/profile_stats?username=eq.${q_(name)}&limit=1`); return r[0] || null; },
+    async isFollowing(id) { if (!sess) return false; const r = await raw(`/rest/v1/follows?follower=eq.${sess.user.id}&followee=eq.${q_(id)}&select=followee`); return r.length > 0; },
+    follow: id => raw("/rest/v1/follows", { method: "POST", body: { followee: id }, prefer: "return=minimal" }),
+    unfollow: id => raw(`/rest/v1/follows?follower=eq.${sess.user.id}&followee=eq.${q_(id)}`, { method: "DELETE" }),
+    async followingIds() { if (!sess) return []; return (await raw(`/rest/v1/follows?follower=eq.${sess.user.id}&select=followee&limit=500`)).map(x => x.followee); },
+    async updateProfile({ bio, accent }) { await raw(`/rest/v1/profiles?id=eq.${sess.user.id}`, { method: "PATCH", body: { bio: bio || null, accent: accent == null ? null : accent }, prefer: "return=minimal" }); await profile(); },
+    notifications: () => raw("/rest/v1/notifications_feed?order=created_at.desc&limit=50"),
+    async unreadCount() { if (!sess) return 0; return (await raw("/rest/v1/notifications_feed?read=eq.false&select=id&limit=100")).length; },
+    markAllRead: () => raw("/rest/v1/notifications?read=eq.false", { method: "PATCH", body: { read: true }, prefer: "return=minimal" }),
+    logEvent(t, k, src, lang) { try { fetch(`${C.supabaseUrl}/rest/v1/rpc/log_event`, { method: "POST", keepalive: true, headers: { apikey: C.supabaseKey, "Content-Type": "application/json" }, body: JSON.stringify({ t, k, s: src || "", l: lang || "" }) }).catch(() => {}); } catch {} },
+    async stats() {
+      const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+      const [events, members, posts] = await Promise.all([
+        raw(`/rest/v1/event_counts?day=gte.${since}&limit=3000`),
+        raw(`/rest/v1/profiles?select=created_at&created_at=gte.${since}&limit=2000`),
+        raw(`/rest/v1/posts_feed?select=created_at&created_at=gte.${since}&limit=2000`)]);
+      return { events, members, posts };
+    },
     unhide: (type, id) => raw(`/rest/v1/${type === "post" ? "posts" : "comments"}?id=eq.${+id}`, { method: "PATCH", body: { hidden: false }, prefer: "return=minimal" }),
     dismissReport: id => raw(`/rest/v1/reports?id=eq.${+id}`, { method: "DELETE" }),
     deleteReportsFor: (type, id) => raw(`/rest/v1/reports?target_type=eq.${q_(type)}&target_id=eq.${+id}`, { method: "DELETE" }),
-    async posts({ board, sort = "latest", q, author, offset = 0, limit = 20 } = {}) {
+    async posts({ board, sort = "latest", q, author, authors, offset = 0, limit = 20 } = {}) {
       const f = [];
+      if (authors) { if (!authors.length) return []; f.push(`author=in.(${authors.join(",")})`); }
       if (board) f.push(`board=eq.${q_(board)}`);
       if (author) f.push(`username=eq.${q_(author)}`);
       const term = (q || "").replace(/[,()*"\%]/g, " ").trim().slice(0, 60);
@@ -158,7 +177,7 @@ function demo() {
   const db = () => rd(K) || { users: {}, posts: [], comments: [], likes: [], seq: 1, session: null };
   const put = d => wr(K, d);
   const hash = async (id, pw) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(id.toLowerCase() + ":" + pw)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); };
-  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, isAdmin: d.users[d.session].username === "admin", ban: (d.bans || {})[d.session] || null } : null; };
+  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, accent: d.users[d.session].accent == null ? null : d.users[d.session].accent, isAdmin: d.users[d.session].username === "admin", ban: (d.bans || {})[d.session] || null } : null; };
   const need = () => { const u = me(); if (!u) throw fail("auth"); return u; };
   return {
     live: false,
@@ -168,7 +187,7 @@ function demo() {
     async signUp(id, pw) {
       const d = db(), k = id.toLowerCase();
       if (d.users[k]) throw fail("taken");
-      d.users[k] = { username: id, hash: await hash(id, pw) }; d.session = k; put(d);
+      d.users[k] = { username: id, hash: await hash(id, pw), at: new Date().toISOString() }; d.session = k; put(d);
     },
     async signIn(id, pw) {
       const d = db(), u = d.users[id.toLowerCase()];
@@ -180,9 +199,9 @@ function demo() {
     async deleteAccount() {
       const u = need(), d = db(); delete d.users[u.id]; d.posts = d.posts.filter(p => p.author !== u.id); d.comments = d.comments.filter(c => c.author !== u.id); d.likes = d.likes.filter(l => l.user_id !== u.id); d.session = null; put(d);
     },
-    async posts({ board, sort = "latest", q, author, offset = 0, limit = 20 } = {}) {
+    async posts({ board, sort = "latest", q, author, authors, offset = 0, limit = 20 } = {}) {
       const d = db(), u = me(), t = (q || "").toLowerCase();
-      let rows = d.posts.filter(p => (!board || p.board === board) && (!author || p.username.toLowerCase() === author.toLowerCase()) && (!t || (p.title + " " + p.body).toLowerCase().includes(t))).map(p => ({
+      let rows = d.posts.filter(p => (!board || p.board === board) && (!authors || authors.includes(p.author)) && (!author || p.username.toLowerCase() === author.toLowerCase()) && (!t || (p.title + " " + p.body).toLowerCase().includes(t))).map(p => ({
         ...p, like_count: d.likes.filter(l => l.post_id === p.id).length,
         comment_count: d.comments.filter(c => c.post_id === p.id).length,
         liked: !!u && d.likes.some(l => l.post_id === p.id && l.user_id === u.id)
@@ -213,9 +232,20 @@ function demo() {
     async unhide(type, id) { const u = need(); if (!u.isAdmin) return; const d = db(), row = (type === "post" ? d.posts : d.comments).find(x => x.id === id); if (row) row.hidden = false; put(d); },
     async deletePost(id) { const u = need(), d = db(); d.posts = d.posts.filter(p => !(p.id === id && (p.author === u.id || u.isAdmin))); d.comments = d.comments.filter(c => c.post_id !== id); d.likes = d.likes.filter(l => l.post_id !== id); put(d); },
     async comments(id) { return db().comments.filter(c => c.post_id === id); },
-    async createComment(post_id, body) { const u = need(), d = db(); d.comments.push({ id: d.seq++, post_id, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); },
+    async createComment(post_id, body) { const u = need(), d = db(); d.comments.push({ id: d.seq++, post_id, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); const po = d.posts.find(x => x.id === post_id); if (po && po.author !== u.id) (d.notifs = d.notifs || []).push({ id: d.seq++, user_id: po.author, type: "comment", post_id, actor_name: u.username, post_title: po.title, created_at: new Date().toISOString(), read: false }); put(d); },
     async deleteComment(id) { const u = need(), d = db(); d.comments = d.comments.filter(c => !(c.id === id && (c.author === u.id || u.isAdmin))); put(d); },
-    async toggleLike(id, liked) { const u = need(), d = db(); d.likes = d.likes.filter(l => !(l.post_id === id && l.user_id === u.id)); if (!liked) d.likes.push({ post_id: id, user_id: u.id }); put(d); }
+    async toggleLike(id, liked) { const u = need(), d = db(); d.likes = d.likes.filter(l => !(l.post_id === id && l.user_id === u.id)); if (!liked) { d.likes.push({ post_id: id, user_id: u.id }); const po = d.posts.find(x => x.id === id); if (po && po.author !== u.id) (d.notifs = d.notifs || []).push({ id: d.seq++, user_id: po.author, type: "like", post_id: id, actor_name: u.username, post_title: po.title, created_at: new Date().toISOString(), read: false }); } put(d); },
+    async profileOf(name) { const d = db(), k = name.toLowerCase(), u = d.users[k]; if (!u) return null; return { id: k, username: u.username, bio: u.bio || null, accent: u.accent == null ? null : u.accent, created_at: u.at || new Date().toISOString(), posts_count: d.posts.filter(p => p.author === k).length, followers: (d.follows || []).filter(f => f[1] === k).length, following: (d.follows || []).filter(f => f[0] === k).length }; },
+    async isFollowing(id) { const u = me(); return !!u && (db().follows || []).some(f => f[0] === u.id && f[1] === id); },
+    async follow(id) { const u = need(), d = db(); d.follows = d.follows || []; if (!d.follows.some(f => f[0] === u.id && f[1] === id)) { d.follows.push([u.id, id]); (d.notifs = d.notifs || []).push({ id: d.seq++, user_id: id, type: "follow", post_id: null, actor_name: u.username, post_title: null, created_at: new Date().toISOString(), read: false }); } put(d); },
+    async unfollow(id) { const u = need(), d = db(); d.follows = (d.follows || []).filter(f => !(f[0] === u.id && f[1] === id)); put(d); },
+    async followingIds() { const u = me(); return u ? (db().follows || []).filter(f => f[0] === u.id).map(f => f[1]) : []; },
+    async updateProfile({ bio, accent }) { const u = need(), d = db(); d.users[u.id].bio = bio || null; d.users[u.id].accent = accent == null ? null : accent; put(d); },
+    async notifications() { const u = me(); return u ? (db().notifs || []).filter(n => n.user_id === u.id).slice().reverse() : []; },
+    async unreadCount() { const u = me(); return u ? (db().notifs || []).filter(n => n.user_id === u.id && !n.read).length : 0; },
+    async markAllRead() { const u = need(), d = db(); (d.notifs || []).forEach(n => { if (n.user_id === u.id) n.read = true; }); put(d); },
+    logEvent() {},
+    async stats() { return { events: [], members: [], posts: [] }; }
   };
 }
 

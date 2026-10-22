@@ -85,3 +85,13 @@ GitHub Pages는 repo 1GB·사이트 1GB·월 100GB 대역폭 소프트 한도라
 3. Client ID / Secret → Supabase → Authentication → Sign In / Providers → Google → Enable → 저장. (Secret 은 Supabase 화면에만)
 4. `config.js` 의 `googleLogin: true` 로 바꾸고 push.
 5. 사용자가 늘면 동의 화면을 "Publish app" (그 전에는 Test users 로 등록한 계정만 로그인 가능).
+
+## 운영 도구 / 소셜 / 통계 (DB 마이그레이션 001~006 적용 완료)
+- `supabase/005_moderation.sql`: 신고 3건 누적 시 글·댓글 자동 숨김(관리자가 복원/삭제), 계정 정지(1/7/30일·영구), 가입 1시간 이내 신규 계정 작성 제한, 신고는 가입 1시간 후부터.
+- `supabase/006_social_stats.sql`: 프로필(소개글·아바타 색), 팔로우, 알림(댓글·좋아요·팔로우), 익명 통계(`event_counts`).
+- 관리자 화면: 커뮤니티 왼쪽 메뉴 🛡 Admin → 신고 / 정지 계정 / 통계. 관리자 지정: SQL Editor 에서 `insert into public.admins (user_id) select id from auth.users where lower(email)='<이메일>';` (이메일은 저장소에 커밋하지 않는다)
+- **디스코드 신고 알림 (선택)**: 디스코드 서버 설정 → 연동 → 웹후크 생성 → URL 복사 →
+  SQL Editor: `insert into public.app_settings (key, value) values ('discord_webhook', '<웹후크 URL>') on conflict (key) do update set value = excluded.value;`
+  (URL 은 비밀값. 저장소/채팅에 올리지 않는다. 해제는 `delete from public.app_settings where key='discord_webhook';`)
+- **곡별 공유 페이지**: `python scripts/build_pages.py` → `t/<slug>.html`(OG 미리보기), `sitemap.xml`, `robots.txt` 생성. `tracks.json` 을 바꿀 때마다 실행 후 커밋. 공유 버튼은 이 주소를 복사한다.
+- **유입 추적**: 숏폼 설명란 링크에 `?src=tiktok` 처럼 붙이면 통계의 "유입 경로별 방문"에 집계된다. 쿠키·IP 저장 없음, 일별 카운터만 저장.

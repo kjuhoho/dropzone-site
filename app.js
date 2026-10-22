@@ -5,7 +5,7 @@ const audio = new Audio(); audio.preload = "metadata";
 let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "all", moodKeys = [], producer = {};
 const T = (k, v) => DZ.T(k, v), toast = m => DZ.toast(m);
 
-const trackUrl = t => location.origin + location.pathname + "?t=" + t.slug;
+const trackUrl = t => location.origin + location.pathname.replace(/[^/]*$/, "") + "t/" + t.slug + ".html";
 
 async function init() {
   await DZ.init();
@@ -81,7 +81,7 @@ function toggle() { if (cur < 0) load(0); audio.paused ? play() : audio.pause();
 function step(d) { if (!tracks.length) return; load((cur + d + tracks.length) % tracks.length); play(); }
 const sync = () => { $("toggle").textContent = audio.paused ? "▶" : "❚❚"; $("heroPlay").textContent = T(audio.paused ? "listen" : "pause"); };
 
-audio.addEventListener("play", sync);
+audio.addEventListener("play", () => { if (audio.currentTime < 1 && cur >= 0) DZ.log("play", tracks[cur].slug); sync(); });
 audio.addEventListener("pause", sync);
 audio.addEventListener("ended", () => step(1));
 audio.addEventListener("loadedmetadata", () => $("dur").textContent = fmt(audio.duration));
@@ -90,7 +90,7 @@ $("seek").oninput = e => { if (audio.duration) audio.currentTime = e.target.valu
 $("toggle").onclick = toggle; $("heroPlay").onclick = toggle;
 $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
 $("share").onclick = async () => {
-  if (cur < 0) return; const t = tracks[cur], url = trackUrl(t);
+  if (cur < 0) return; const t = tracks[cur], url = trackUrl(t); DZ.log("share", t.slug);
   if (navigator.share) { try { await navigator.share({ title: t.title + " — ARUGA", url }); return; } catch {} }
   try { await navigator.clipboard.writeText(url); toast(T("t.copied")); } catch { prompt("URL", url); }
 };

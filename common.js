@@ -56,12 +56,18 @@ let mode = "login";
 function renderAuthBar() {
   const u = B().user(), bar = $("authBar");
   bar.innerHTML = u
-    ? `<button class="chip-btn me-btn" id="meBtn" aria-label="${esc(DZ.T("acct.title"))}">@${esc(u.username || "…")}</button>`
+    ? `<a class="bell" id="bell" href="community.html#/notifications" aria-label="${esc(DZ.T("c.notifs"))}">🔔<b class="bd" id="bellN" hidden></b></a><button class="chip-btn me-btn" id="meBtn" aria-label="${esc(DZ.T("acct.title"))}">@${esc(u.username || "…")}</button>`
     : `<button class="chip-btn strong" id="loginBtn">${esc(DZ.T("auth.login"))}</button>`;
   const me = $("meBtn"), li = $("loginBtn");
   if (me) me.onclick = () => { renderAcct(); $("acctDlg").showModal(); };
   if (li) li.onclick = () => DZ.openAuth("login");
+  DZ.refreshBell();
 }
+DZ.refreshBell = async () => {
+  const el = $("bellN"); if (!el || !B().user() || !B().unreadCount) return;
+  try { const n = await B().unreadCount(); el.hidden = !n; el.textContent = n > 99 ? "99+" : String(n); } catch {}
+};
+setInterval(() => { if (!document.hidden) DZ.refreshBell(); }, 60000);
 function renderDialogText() {
   const su = mode === "signup";
   $("aTitle").textContent = DZ.T(su ? "auth.signup" : "auth.login");
@@ -168,6 +174,10 @@ function buildDialogs() {
   };
 }
 
+try { const sp = new URLSearchParams(location.search), src = sp.get("src") || sp.get("utm_source"); if (src) sessionStorage.setItem("dz_src", src.slice(0, 24)); } catch {}
+DZ.log = (t, k) => { try { B().logEvent(t, k, sessionStorage.getItem("dz_src") || "", DZ.lang); } catch {} };
+DZ.logOnce = (t, k) => { try { const key = "dz_l_" + t + k; if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, "1"); } catch {} DZ.log(t, k); };
+
 DZ.init = async () => {
   DZ.I = await fetch("data/i18n.json").then(r => r.json());
   let l = null; try { l = new URLSearchParams(location.search).get("lang") || localStorage.getItem("lang"); } catch {}
@@ -179,6 +189,8 @@ DZ.init = async () => {
   buildDialogs();
   await B().ready;
   applyLang(); checkNick();
+  const page = location.pathname.split("/").pop().replace(/\.html$/, "") || "index";
+  DZ.logOnce("visit", page === "index" ? "home" : page);
 };
 DZ.applyLang = applyLang;
 })();
