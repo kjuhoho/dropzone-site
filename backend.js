@@ -59,7 +59,10 @@ function supabase() {
     if (!sess) return;
     try {
       const [p] = await raw(`/rest/v1/profiles?id=eq.${sess.user.id}&select=username,needs_username`);
-      if (p && sess) save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username } });
+      if (p && sess) {
+        let adm = false; try { adm = (await raw("/rest/v1/rpc/is_admin", { method: "POST", body: {} })) === true; } catch {}
+        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm } });
+      }
       else if (!p) save(null); // 계정이 삭제된 경우
     } catch (e) { if (e.status === 401) save(null); }
   }
@@ -70,6 +73,7 @@ function supabase() {
     const liked = new Set((await raw(`/rest/v1/likes?select=post_id&user_id=eq.${sess.user.id}&post_id=in.(${ids})`)).map(x => x.post_id));
     return rows.map(p => ({ ...p, liked: liked.has(p.id) }));
   }
+  const PATH_RE = /^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,80}$/;
   const sec = cap => cap ? { gotrue_meta_security: { captcha_token: cap } } : {};
   const api = {
     live: true,
@@ -90,7 +94,32 @@ function supabase() {
     },
     async signOut() { try { await raw("/auth/v1/logout", { method: "POST" }); } catch {} save(null); },
     async setUsername(name) { await raw("/rest/v1/rpc/set_username", { method: "POST", body: { new_name: name } }); await profile(); },
-    async deleteAccount() { await raw("/rest/v1/rpc/delete_my_account", { method: "POST", body: {} }); save(null); },
+    async deleteAccount() {
+      try {
+        const uid = sess.user.id, t = await token();
+        const r = await fetch(`${C.supabaseUrl}/storage/v1/object/list/community`, { method: "POST", headers: { apikey: C.supabaseKey, Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify({ prefix: uid, limit: 1000 }) });
+        const items = r.ok ? await r.json() : [];
+        await api.removeFiles(items.map(o => `${uid}/${o.name}`));
+      } catch {}
+      await raw("/rest/v1/rpc/delete_my_account", { method: "POST", body: {} }); save(null);
+    },
+    fileUrl: p => PATH_RE.test(p || "") ? `${C.supabaseUrl}/storage/v1/object/public/community/${p}` : null,
+    async upload(file) {
+      const t = await token(); if (!t) throw fail("auth");
+      const ext = ((file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5)) || "bin";
+      const path = `${sess.user.id}/${crypto.randomUUID()}.${ext}`;
+      const r = await fetch(`${C.supabaseUrl}/storage/v1/object/community/${path}`, { method: "POST", headers: { apikey: C.supabaseKey, Authorization: "Bearer " + t, "Content-Type": file.type || "application/octet-stream", "x-upsert": "false", "cache-control": "max-age=31536000" }, body: file });
+      if (!r.ok) {
+        let j = null; try { j = await r.json(); } catch {}
+        const m = (j && (j.message || j.error)) || r.statusText;
+        throw fail(/exceed|too large|size/i.test(m) ? "fileBig" : /mime|type/i.test(m) ? "fileBad" : /row-level|polic|violat/i.test(m) ? "daily" : "generic", m);
+      }
+      return path;
+    },
+    async removeFiles(paths) { const ps = (paths || []).filter(p => PATH_RE.test(p || "")); if (!ps.length) return; try { await raw("/storage/v1/object/community", { method: "DELETE", body: { prefixes: ps } }); } catch {} },
+    reports: () => raw("/rest/v1/reports_feed?order=created_at.desc&limit=100"),
+    dismissReport: id => raw(`/rest/v1/reports?id=eq.${+id}`, { method: "DELETE" }),
+    deleteReportsFor: (type, id) => raw(`/rest/v1/reports?target_type=eq.${q_(type)}&target_id=eq.${+id}`, { method: "DELETE" }),
     async posts({ board, sort = "latest", q, author, offset = 0, limit = 20 } = {}) {
       const f = [];
       if (board) f.push(`board=eq.${q_(board)}`);
@@ -103,7 +132,7 @@ function supabase() {
     },
     async post(id) { const rows = await withLiked(await raw(`/rest/v1/posts_feed?id=eq.${+id}`)); return rows[0] || null; },
     async texts() { return raw("/rest/v1/posts_feed?select=title,body&order=created_at.desc&limit=200"); },
-    async createPost(board, title, body) { const r = await raw("/rest/v1/posts", { method: "POST", body: { board, title, body }, prefer: "return=representation" }); return r && r[0] && r[0].id; },
+    async createPost(board, title, body, attachments = []) { const r = await raw("/rest/v1/posts", { method: "POST", body: { board, title, body, attachments }, prefer: "return=representation" }); return r && r[0] && r[0].id; },
     async report(type, id, reason) { try { await raw("/rest/v1/reports", { method: "POST", body: { target_type: type, target_id: id, reason: reason || null }, prefer: "return=minimal" }); } catch (e) { if (e.code === "taken" || /duplicate|23505/.test(e.message)) throw fail("reportedAlready"); throw e; } },
     deletePost: id => raw(`/rest/v1/posts?id=eq.${id}`, { method: "DELETE" }),
     comments: id => raw(`/rest/v1/comments_feed?post_id=eq.${id}&order=created_at.asc&limit=200`),
@@ -123,7 +152,7 @@ function demo() {
   const db = () => rd(K) || { users: {}, posts: [], comments: [], likes: [], seq: 1, session: null };
   const put = d => wr(K, d);
   const hash = async (id, pw) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(id.toLowerCase() + ":" + pw)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); };
-  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false } : null; };
+  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, isAdmin: d.users[d.session].username === "admin" } : null; };
   const need = () => { const u = me(); if (!u) throw fail("auth"); return u; };
   return {
     live: false,
@@ -157,12 +186,25 @@ function demo() {
     },
     async post(id) { return (await this.posts({ limit: 1e6 })).find(p => p.id === +id) || null; },
     async texts() { return db().posts.slice(-200).map(p => ({ title: p.title, body: p.body })); },
-    async createPost(board, title, body) { const u = need(), d = db(), id = d.seq++; d.posts.push({ id, board, title, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); return id; },
-    async report() { need(); },
-    async deletePost(id) { const u = need(), d = db(); d.posts = d.posts.filter(p => !(p.id === id && p.author === u.id)); d.comments = d.comments.filter(c => c.post_id !== id); d.likes = d.likes.filter(l => l.post_id !== id); put(d); },
+    async createPost(board, title, body, attachments = []) { const u = need(), d = db(), id = d.seq++; d.posts.push({ id, board, title, body, attachments, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); return id; },
+    fileUrl: p => typeof p === "string" && p.startsWith("data:") ? p : null,
+    async upload(file) {
+      if (file.size > 1.5e6) throw fail("demoFile");
+      return await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(file); });
+    },
+    async removeFiles() {},
+    async report(type, id, reason) { const u = need(), d = db(); d.reports = d.reports || []; if (d.reports.some(r => r.reporter === u.id && r.target_type === type && r.target_id === id)) throw fail("reportedAlready"); d.reports.push({ id: d.seq++, reporter: u.id, reporter_name: u.username, target_type: type, target_id: id, reason: reason || null, created_at: new Date().toISOString() }); put(d); },
+    async reports() {
+      const u = need(); if (!u.isAdmin) return []; const d = db();
+      return (d.reports || []).slice().reverse().map(r => { const c = r.target_type === "comment" ? d.comments.find(x => x.id === r.target_id) : null, p = r.target_type === "post" ? d.posts.find(x => x.id === r.target_id) : null;
+        return { ...r, preview: p ? (p.title + " — " + p.body).slice(0, 300) : c ? c.body.slice(0, 300) : null, attachments: p ? p.attachments || [] : null, post_id: c ? c.post_id : r.target_id }; });
+    },
+    async dismissReport(id) { const u = need(); if (!u.isAdmin) return; const d = db(); d.reports = (d.reports || []).filter(r => r.id !== id); put(d); },
+    async deleteReportsFor(type, id) { const u = need(); if (!u.isAdmin) return; const d = db(); d.reports = (d.reports || []).filter(r => !(r.target_type === type && r.target_id === id)); put(d); },
+    async deletePost(id) { const u = need(), d = db(); d.posts = d.posts.filter(p => !(p.id === id && (p.author === u.id || u.isAdmin))); d.comments = d.comments.filter(c => c.post_id !== id); d.likes = d.likes.filter(l => l.post_id !== id); put(d); },
     async comments(id) { return db().comments.filter(c => c.post_id === id); },
     async createComment(post_id, body) { const u = need(), d = db(); d.comments.push({ id: d.seq++, post_id, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); put(d); },
-    async deleteComment(id) { const u = need(), d = db(); d.comments = d.comments.filter(c => !(c.id === id && c.author === u.id)); put(d); },
+    async deleteComment(id) { const u = need(), d = db(); d.comments = d.comments.filter(c => !(c.id === id && (c.author === u.id || u.isAdmin))); put(d); },
     async toggleLike(id, liked) { const u = need(), d = db(); d.likes = d.likes.filter(l => !(l.post_id === id && l.user_id === u.id)); if (!liked) d.likes.push({ post_id: id, user_id: u.id }); put(d); }
   };
 }
