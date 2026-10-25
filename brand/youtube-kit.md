@@ -10,8 +10,8 @@
 다시 만들기: `python scripts/make_brand.py`
 
 ## 2. 기본 정보
-- **채널 이름**: `DROPZONE`
-- **핸들(@)**: `@dropzone.edm` → 없으면 `@dropzone_edm`, `@dropzoneedm`, `@dropzonehq` (다른 플랫폼과 같은 핸들이면 최고)
+- **채널 이름**: `dropzoneEDM.` (표시 이름을 `DROPZONE`으로 바꾸고 싶으면 맞춤 설정 → 기본 정보에서 변경)
+- **현재 채널**: `dropzoneEDM.` — https://www.youtube.com/channel/UCG3oo0pzbvzjMAQjWqzeoKA (이미 개설·업로더 연결됨). 다른 플랫폼 핸들은 이 이름과 맞추면 좋다(예: `dropzoneedm`).
 - **채널 설명(1,000자 이하, 글자 수 확인 완료)**: 맞춤 설정 → 기본 정보. 기본 언어는 영어, **"언어 추가"로 한국어·일본어·인도네시아어 번역을 넣으면** 시청자 언어에 맞춰 표시된다.
 
 ### EN (418자)
@@ -68,7 +68,7 @@ Bisnis & hak cipta: kjuhoho@gnu.ac.kr
 ```
 
 ## 3. 링크 (맞춤 설정 → 기본 정보 → 링크, 최대 14개 / 배너 위에는 앞쪽 5개가 표시)
-1. DROPZONE — https://kjuhoho.github.io/dropzone-site/?src=youtube
+1. DROPZONE — https://kjuhoho.github.io/dropzone-site/?src=youtube  (사이트가 첫 번째 링크)
 2. Community — https://kjuhoho.github.io/dropzone-site/community.html?src=youtube
 3. (생기면) Instagram · TikTok · X
 - **비즈니스 문의 이메일**: kjuhoho@gnu.ac.kr (채널 소개 화면에 공개됨. 공개가 싫으면 이 칸을 비워 두기)
