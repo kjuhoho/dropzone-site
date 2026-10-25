@@ -94,7 +94,10 @@ const sync = () => { $("toggle").textContent = audio.paused ? "▶" : "❚❚"; 
 audio.addEventListener("play", () => { if (audio.currentTime < 1 && cur >= 0) DZ.log("play", tracks[cur].slug); sync(); });
 audio.addEventListener("pause", sync);
 audio.addEventListener("ended", () => step(1));
-audio.addEventListener("loadedmetadata", () => { $("dur").textContent = fmt(audio.duration); if (pendingSeek != null) { audio.currentTime = Math.min(pendingSeek, audio.duration - 1); pendingSeek = null; } });
+let seekTarget = null;
+audio.addEventListener("loadedmetadata", () => { $("dur").textContent = fmt(audio.duration); if (pendingSeek != null) { seekTarget = Math.min(pendingSeek, audio.duration - 1); audio.currentTime = seekTarget; pendingSeek = null; } });
+// 서버가 구간 요청(Range)을 늦게 처리해 위치가 0으로 돌아가는 경우를 대비해, 재생 가능해진 뒤 한 번 더 맞춘다
+audio.addEventListener("canplay", () => { if (seekTarget != null) { if (Math.abs(audio.currentTime - seekTarget) > 1) audio.currentTime = seekTarget; seekTarget = null; } });
 audio.addEventListener("timeupdate", () => { $("cur").textContent = fmt(audio.currentTime); if (audio.duration) $("seek").value = audio.currentTime / audio.duration * 1000; });
 $("seek").oninput = e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; };
 $("toggle").onclick = toggle; $("heroPlay").onclick = toggle;
