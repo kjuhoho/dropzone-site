@@ -1,5 +1,7 @@
 # DROPZONE 홍보 프로필 키트
 
+> 유튜브 채널용은 [youtube-kit.md](youtube-kit.md) 를 보세요.
+
 사이트: https://kjuhoho.github.io/dropzone-site/  ·  문의: kjuhoho@gnu.ac.kr
 
 ## 1. 이미지 (media/brand/)

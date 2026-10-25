@@ -199,10 +199,61 @@ def make_og():
     img.convert("RGB").save(OUT / "og.png", optimize=True)
 
 
+# ---------------- 유튜브: 채널 배너 2560x1440 (안전영역 1546x423 가운데) ----------------
+def make_youtube_banner(w=2560, h=1440):
+    img = base((w, h)).convert("RGBA")
+    # 가운데 가로선 기준 위아래 대칭 막대 (TV 화면 전체 대응, 글자 뒤에서는 약하게)
+    up = bars_layer((w, h // 2), 96, seed=21, base_y=h // 2, max_h=h * 0.36, floor=0.05)
+    up.putalpha(up.getchannel("A").point(lambda v: int(v * 0.42)))
+    mir = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    mir.paste(up, (0, 0))
+    mir.paste(up.transpose(Image.FLIP_TOP_BOTTOM), (0, h // 2))
+    img = Image.alpha_composite(img, glow(mir, 6))
+    cx, cy = w / 2, h / 2
+    # 글자 가독성용 어두운 띠 (안전영역 안쪽)
+    shade = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(shade).rounded_rectangle([cx - 700, cy - 190, cx + 700, cy + 190], radius=60, fill=(7, 6, 13, 165))
+    img = Image.alpha_composite(img, shade.filter(ImageFilter.GaussianBlur(50)))
+    mark = logo_mark(150, 0.17)
+    mk = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    paste_center(mk, mark, cx, cy - 118)
+    img = Image.alpha_composite(img, glow(mk, 10, 1.2))
+    f = ImageFont.truetype(FONT, 138)
+    word = text_gradient("DROPZONE", f, 20)
+    wl = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    paste_center(wl, word, cx, cy + 22)
+    img = Image.alpha_composite(img, glow(wl, 9, 0.9))
+    d = ImageDraw.Draw(img)
+    tf = ImageFont.truetype(FONT, 40)
+    t = "A PLACE FOR PEOPLE WHO LOVE EDM"
+    tw = sum(d.textlength(c, font=tf) + 9 for c in t) - 9
+    x = cx - tw / 2
+    for c in t:
+        d.text((x, cy + 105), c, font=tf, fill=(225, 221, 248, 240))
+        x += d.textlength(c, font=tf) + 9
+    img.convert("RGB").save(OUT / "youtube-banner.png", optimize=True)
+
+
+# ---------------- 유튜브: 영상 워터마크 150x150 (투명 배경, 로고만) ----------------
+def make_watermark():
+    mark = logo_mark(150, 0.19)
+    out = Image.new("RGBA", (150, 150), (0, 0, 0, 0))
+    out.alpha_composite(mark)
+    out.save(OUT / "youtube-watermark.png", optimize=True)
+
+
+# ---------------- 유튜브: 채널 프로필 사진 800x800 ----------------
+def make_youtube_avatar():
+    Image.open(OUT / "avatar.png").resize((800, 800), Image.LANCZOS).save(OUT / "youtube-avatar.png", optimize=True)
+
+
 if __name__ == "__main__":
     make_avatar()
     make_banner()
     make_banner(1200, 400, "profile-banner.png", tagline=False)
     make_og()
+    make_youtube_banner()
+    make_watermark()
+    make_youtube_avatar()
     for p in sorted(OUT.glob("*.png")):
         print(p.name, Image.open(p).size, p.stat().st_size // 1024, "KB")
