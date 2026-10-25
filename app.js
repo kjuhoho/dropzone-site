@@ -39,7 +39,7 @@ function renderShorts() {
     const t = tracks.find(x => x.slug === s.track);
     const ext = Object.entries(s.external || {}).find(([, u]) => u);
     return `<div class="short" data-id="${s.id}"><img src="${s.poster}" alt="" loading="lazy">
-      <span class="badge">${t ? t.title : ""}</span>${ext ? `<a class="ext" href="${ext[1]}" target="_blank" rel="noopener">${ext[0]}↗</a>` : ""}
+      <span class="badge">${t ? t.title : ""}</span>${ext ? `<a class="ext" href="${ext[1]}" target="_blank" rel="noopener">${ext[0]}↗</a>` : ""}${t ? `<a class="go-game" href="${gameUrl(t)}" target="_blank" rel="noopener" title="${T("play.game")}" aria-label="${T("play.game")}">🎮</a>` : ""}
       <button aria-label="${T("a.short")}"></button></div>`;
   }).join("");
   g.onclick = e => {
