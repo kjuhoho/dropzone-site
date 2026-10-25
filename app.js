@@ -8,7 +8,7 @@ const T = (k, v) => DZ.T(k, v), toast = m => DZ.toast(m);
 const trackUrl = t => location.origin + location.pathname.replace(/[^/]*$/, "") + "t/" + t.slug + ".html";
 const siteBase = () => location.origin + location.pathname.replace(/[^/]*$/, "");
 const PULSE_LAB = "https://kjuhoho.github.io/pulse-lab/";
-const gameUrl = t => PULSE_LAB + "?src=" + encodeURIComponent(siteBase() + t.audio) + "&title=" + encodeURIComponent(t.title + " — ARUGA") + "&back=" + encodeURIComponent(location.origin + location.pathname);
+const gameUrl = t => PULSE_LAB + "?src=" + encodeURIComponent(siteBase() + t.audio) + "&title=" + encodeURIComponent(t.title + " — ARUGA") + "&cover=" + encodeURIComponent(siteBase() + t.cover) + "&back=" + encodeURIComponent(location.origin + location.pathname);
 
 async function init() {
   await DZ.init();
