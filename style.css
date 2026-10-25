@@ -22,6 +22,8 @@ h2{font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
 .track img{width:64px;height:64px;border-radius:10px;object-fit:cover}
 .track b{display:block}.track small{color:var(--dim)}
 .track .go{font-size:22px;color:var(--c1);padding:0 8px}
+.track-actions{display:flex;align-items:center;gap:6px}
+.track-actions .go-game{padding:7px 10px;font-size:16px;line-height:1}
 .shorts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .short{position:relative;aspect-ratio:9/16;border-radius:var(--r);overflow:hidden;background:#000;border:1px solid var(--line)}
 .short video,.short img{width:100%;height:100%;object-fit:cover;display:block}

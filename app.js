@@ -6,6 +6,9 @@ let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "all", moodKe
 const T = (k, v) => DZ.T(k, v), toast = m => DZ.toast(m);
 
 const trackUrl = t => location.origin + location.pathname.replace(/[^/]*$/, "") + "t/" + t.slug + ".html";
+const siteBase = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+const PULSE_LAB = "https://kjuhoho.github.io/pulse-lab/";
+const gameUrl = t => PULSE_LAB + "?src=" + encodeURIComponent(siteBase() + t.audio) + "&title=" + encodeURIComponent(t.title + " — ARUGA") + "&back=" + encodeURIComponent(location.origin + location.pathname);
 
 async function init() {
   await DZ.init();
@@ -14,7 +17,8 @@ async function init() {
   const s = tj.site, p = tj.producer; producer = p; moodKeys = ["all", ...tj.moods];
   $("siteName").textContent = s.name; $("footName").textContent = s.name; $("prName").textContent = p.name; $("prAvatar").src = p.avatar;
   $("moodChips").onclick = e => { const b = e.target.closest("button"); if (!b) return; mood = b.dataset.m; renderMoods(); renderTracks(); };
-  DZ.onLang(() => { renderMoods(); renderAllLinks(); sync(); renderTracks(); renderShorts(); });
+  if (tracks.length) { const hg = $("heroGame"); hg.href = gameUrl(tracks[0]); hg.hidden = false; }
+  DZ.onLang(() => { renderMoods(); renderAllLinks(); sync(); renderTracks(); renderShorts(); if (tracks.length) $("heroGame").textContent = T("play.game"); });
   DZ.applyLang();
   const want = new URLSearchParams(location.search).get("t");
   const i = tracks.findIndex(t => t.slug === want);
@@ -25,8 +29,8 @@ function renderTracks() {
   $("trackList").innerHTML = tracks.map((t, i) => [t, i]).filter(([t]) => mood === "all" || (t.moods || []).includes(mood)).map(([t, i]) => `
     <li class="track${i === cur ? " on" : ""}" data-i="${i}"><img src="${t.cover}" alt="" loading="lazy">
     <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}</small></div>
-    <span class="go">▶</span></li>`).join("") || `<li class="empty">${T("noTracks")}</li>`;
-  $("trackList").onclick = e => { const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
+    <div class="track-actions"><a class="chip-btn strong go-game" href="${gameUrl(t)}" target="_blank" rel="noopener" title="${T("play.game")}" aria-label="${T("play.game")}" onclick="event.stopPropagation()">🎮</a><span class="go">▶</span></div></li>`).join("") || `<li class="empty">${T("noTracks")}</li>`;
+  $("trackList").onclick = e => { if (e.target.closest(".go-game")) return; const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
 }
 
 function renderShorts() {
