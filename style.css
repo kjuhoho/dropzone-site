@@ -297,3 +297,9 @@ dialog #nId,dialog #acConfirm{width:100%;background:var(--bg);color:var(--fg);bo
 .bar span{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#00f0ff33,#ff2bd633)}
 .bar b,.bar i{position:relative;font-style:normal;font-weight:600}.bar i{color:var(--dim)}
 @media(max-width:560px){.pcard{flex-direction:column;align-items:center;text-align:center}.pc-top{justify-content:center}.pc-stats{justify-content:center}}
+
+/* ===== 곡 목록: 미리듣기 배지 / 드롭 점프 ===== */
+.pv{font-style:normal;color:var(--c2);font-size:12px}
+.tdrops{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.dj{padding:7px 14px;border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--c1);background:#00f0ff0f}
+.dj:hover{border-color:var(--c1);background:#00f0ff22}

@@ -247,6 +247,32 @@ def make_youtube_avatar():
     Image.open(OUT / "avatar.png").resize((800, 800), Image.LANCZOS).save(OUT / "youtube-avatar.png", optimize=True)
 
 
+# ---------------- 곡 커버(임시): 아티스트명 + 곡 번호. 실제 커버가 생기면 media/covers/ 의 같은 이름 파일을 교체 ----------------
+def make_track_cover(artist="ARUGA", label="TRACK 01", out="aruga-track01.jpg", px=800):
+    img = base((px, px)).convert("RGBA")
+    bars = bars_layer((px, px), 28, seed=5, base_y=px * 0.98, max_h=px * 0.5, floor=0.05)
+    bars.putalpha(bars.getchannel("A").point(lambda v: int(v * 0.5)))
+    img = Image.alpha_composite(img, glow(bars, 4))
+    mark = logo_mark(int(px * 0.34), 0.17)
+    mk = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    paste_center(mk, mark, px / 2, px * 0.30)
+    img = Image.alpha_composite(img, glow(mk, 9, 1.2))
+    f = ImageFont.truetype(FONT, int(px * 0.15))
+    word = text_gradient(artist, f, px * 0.02)
+    wl = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    paste_center(wl, word, px / 2, px * 0.62)
+    img = Image.alpha_composite(img, glow(wl, 7, 0.9))
+    d = ImageDraw.Draw(img)
+    tf = ImageFont.truetype(FONT, int(px * 0.05))
+    tw = sum(d.textlength(c, font=tf) + 8 for c in label) - 8
+    x = (px - tw) / 2
+    for c in label:
+        d.text((x, px * 0.74), c, font=tf, fill=(225, 221, 248, 240))
+        x += d.textlength(c, font=tf) + 8
+    cov = OUT.parent / "covers"; cov.mkdir(exist_ok=True)
+    img.convert("RGB").save(cov / out, quality=90, optimize=True)
+
+
 if __name__ == "__main__":
     make_avatar()
     make_banner()
@@ -255,5 +281,6 @@ if __name__ == "__main__":
     make_youtube_banner()
     make_watermark()
     make_youtube_avatar()
+    make_track_cover()
     for p in sorted(OUT.glob("*.png")):
         print(p.name, Image.open(p).size, p.stat().st_size // 1024, "KB")

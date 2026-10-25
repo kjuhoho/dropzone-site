@@ -2,6 +2,7 @@
 const $ = id => document.getElementById(id);
 const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
 const audio = new Audio(); audio.preload = "metadata";
+let siteLinks = {}, pendingSeek = null;
 let tracks = [], shorts = [], cur = -1, ctx, analyser, buf, mood = "all", moodKeys = [], producer = {};
 const T = (k, v) => DZ.T(k, v), toast = m => DZ.toast(m);
 
@@ -14,7 +15,7 @@ async function init() {
   await DZ.init();
   const [tj, sj] = await Promise.all(["tracks", "shorts"].map(n => fetch(`data/${n}.json`).then(r => r.json())));
   tracks = tj.tracks; shorts = sj.shorts;
-  const s = tj.site, p = tj.producer; producer = p; moodKeys = ["all", ...tj.moods];
+  const s = tj.site, p = tj.producer; producer = p; siteLinks = s.links || {}; moodKeys = ["all", ...tj.moods];
   $("siteName").textContent = s.name; $("footName").textContent = s.name; $("prName").textContent = p.name; $("prAvatar").src = p.avatar;
   $("moodChips").onclick = e => { const b = e.target.closest("button"); if (!b) return; mood = b.dataset.m; renderMoods(); renderTracks(); };
   if (tracks.length) { const hg = $("heroGame"); hg.href = gameUrl(tracks[0]); hg.hidden = false; }
@@ -22,15 +23,20 @@ async function init() {
   DZ.applyLang();
   const want = new URLSearchParams(location.search).get("t");
   const i = tracks.findIndex(t => t.slug === want);
-  if (i >= 0) { load(i); toast(T("t.tap")); } // 자동재생은 브라우저가 막으므로 로드만
+  const at = +new URLSearchParams(location.search).get("at");
+  if (i >= 0) { load(i); if (at > 0) pendingSeek = Math.max(0, at - 3); toast(T("t.tap")); } // 자동재생은 브라우저가 막으므로 로드만
 }
 
 function renderTracks() {
   $("trackList").innerHTML = tracks.map((t, i) => [t, i]).filter(([t]) => mood === "all" || (t.moods || []).includes(mood)).map(([t, i]) => `
     <li class="track${i === cur ? " on" : ""}" data-i="${i}"><img src="${t.cover}" alt="" loading="lazy">
-    <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}</small></div>
+    <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}${t.preview ? ` · <em class="pv">${T("tr.preview")}</em>` : ""}</small>${(t.drops || []).length ? `<div class="tdrops" aria-label="${T("tr.jump")}">${t.drops.map(s => `<button class="dj" data-t="${s}">⚡ ${fmt(s)}</button>`).join("")}</div>` : ""}</div>
     <div class="track-actions"><a class="chip-btn strong go-game" href="${gameUrl(t)}" target="_blank" rel="noopener" title="${T("play.game")}" aria-label="${T("play.game")}" onclick="event.stopPropagation()">🎮</a><span class="go">▶</span></div></li>`).join("") || `<li class="empty">${T("noTracks")}</li>`;
-  $("trackList").onclick = e => { if (e.target.closest(".go-game")) return; const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
+  $("trackList").onclick = e => {
+    if (e.target.closest(".go-game")) return;
+    const dj = e.target.closest(".dj");
+    if (dj) { const i = +dj.closest(".track").dataset.i, to = Math.max(0, +dj.dataset.t - 3); if (i === cur) { audio.currentTime = to; play(); } else { load(i); pendingSeek = to; play(); } return; }
+    const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
 }
 
 function renderShorts() {
@@ -54,7 +60,7 @@ function renderShorts() {
   };
 }
 
-function renderAllLinks() { renderLinks($("prLinks"), producer.links, false); renderLinks($("links"), producer.links, true); }
+function renderAllLinks() { renderLinks($("prLinks"), producer.links, false); renderLinks($("links"), { ...siteLinks, ...Object.fromEntries(Object.entries(producer.links || {}).filter(([, u]) => u)) }, true); }
 function renderLinks(el, l, showEmpty) {
   const on = Object.entries(l).filter(([, u]) => u);
   el.innerHTML = on.length ? on.map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`).join("") : (showEmpty ? `<span class="empty">${T("linksSoon")}</span>` : "");
@@ -66,7 +72,7 @@ function renderMoods() {
 function load(i) {
   cur = i; const t = tracks[i];
   audio.src = t.audio; $("player").hidden = false;
-  $("pCover").src = t.cover; $("pTitle").textContent = t.title; $("pSub").textContent = "ARUGA · " + t.genre;
+  $("pCover").src = t.cover; $("pTitle").textContent = t.title; $("pSub").textContent = "ARUGA · " + t.genre + (t.preview ? " · " + T("tr.preview") : "");
   document.querySelectorAll(".track").forEach((el, k) => el.classList.toggle("on", k === i));
   if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: "ARUGA", artwork: [{ src: t.cover, sizes: "600x600", type: "image/jpeg" }] });
 }
@@ -88,7 +94,7 @@ const sync = () => { $("toggle").textContent = audio.paused ? "▶" : "❚❚"; 
 audio.addEventListener("play", () => { if (audio.currentTime < 1 && cur >= 0) DZ.log("play", tracks[cur].slug); sync(); });
 audio.addEventListener("pause", sync);
 audio.addEventListener("ended", () => step(1));
-audio.addEventListener("loadedmetadata", () => $("dur").textContent = fmt(audio.duration));
+audio.addEventListener("loadedmetadata", () => { $("dur").textContent = fmt(audio.duration); if (pendingSeek != null) { audio.currentTime = Math.min(pendingSeek, audio.duration - 1); pendingSeek = null; } });
 audio.addEventListener("timeupdate", () => { $("cur").textContent = fmt(audio.currentTime); if (audio.duration) $("seek").value = audio.currentTime / audio.duration * 1000; });
 $("seek").oninput = e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; };
 $("toggle").onclick = toggle; $("heroPlay").onclick = toggle;

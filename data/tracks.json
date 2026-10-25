@@ -1,12 +1,15 @@
 {
   "site": {
     "name": "DROPZONE",
-    "url": "https://kjuhoho.github.io/dropzone-site/"
+    "url": "https://kjuhoho.github.io/dropzone-site/",
+    "links": {
+      "youtube": "https://www.youtube.com/channel/UCG3oo0pzbvzjMAQjWqzeoKA"
+    }
   },
   "producer": {
     "slug": "aruga",
     "name": "ARUGA",
-    "avatar": "media/covers/demo.jpg",
+    "avatar": "media/covers/aruga-track01.jpg",
     "links": {
       "youtube": "",
       "tiktok": "",
@@ -23,18 +26,24 @@
   ],
   "tracks": [
     {
-      "slug": "demo-drop",
-      "title": "Untitled (Demo)",
+      "slug": "aruga-track01",
+      "title": "Track 01",
       "genre": "EDM",
       "bpm": null,
-      "released": "2026-10-21",
-      "cover": "media/covers/demo.jpg",
-      "audio": "media/audio/demo-drop.mp3",
+      "released": "2026-10-25",
+      "cover": "media/covers/aruga-track01.jpg",
+      "audio": "media/audio/aruga-track01-preview.mp3",
+      "preview": true,
+      "drops": [
+        15,
+        45
+      ],
       "downloadable": false,
       "shorts": [
-        "aruga-1",
-        "aruga-2",
-        "aruga-3"
+        "aruga-track01-1",
+        "aruga-track01-2",
+        "aruga-track01-3",
+        "aruga-track01-4"
       ],
       "links": {},
       "producer": "aruga",
