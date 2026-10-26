@@ -95,3 +95,19 @@ GitHub Pages는 repo 1GB·사이트 1GB·월 100GB 대역폭 소프트 한도라
   (URL 은 비밀값. 저장소/채팅에 올리지 않는다. 해제는 `delete from public.app_settings where key='discord_webhook';`)
 - **곡별 공유 페이지**: `python scripts/build_pages.py` → `t/<slug>.html`(OG 미리보기), `sitemap.xml`, `robots.txt` 생성. `tracks.json` 을 바꿀 때마다 실행 후 커밋. 공유 버튼은 이 주소를 복사한다.
 - **유입 추적**: 숏폼 설명란 링크에 `?src=tiktok` 처럼 붙이면 통계의 "유입 경로별 방문"에 집계된다. 쿠키·IP 저장 없음, 일별 카운터만 저장.
+
+## 프로필 꾸미기 / 내 음원 (DB 마이그레이션 001~007 적용 완료)
+- `supabase/007_profile_music.sql`: 프로필 아바타·배너(이미지 또는 색 스타일 8종)·링크 6종(https만)·소개글 300자, 프로필당 음원 5곡(`profile_tracks`), 음원 신고·자동 숨김.
+- 내 프로필(`#/u/<닉네임>`) → **프로필 수정**(꾸미기) / **음원 올리기**(mp3·m4a·wav·ogg 12MB 이하, 커버 선택, "내가 만들었거나 공유할 권리가 있는 곡" 체크 필수). 전체 목록은 왼쪽 메뉴 🎧 Music(`#/music`).
+- 관리자는 모든 음원 삭제 가능, 신고 3건이면 자동 숨김 → 관리자 화면에서 복원/삭제.
+- 사진·음원은 Supabase Storage(`community` 버킷)에 저장된다. 무료 한도 약 1GB — 사용량을 가끔 확인.
+
+## 곡 공개 정책 (중요)
+- **사이트에는 전곡을 올리지 않는다.** 사이트의 대표곡은 75초 미리듣기만 공개(`media/audio/*-preview.mp3`, `tracks.json` 의 `preview: true`).
+- 전곡은 아티스트 유튜브 채널로 안내한다: `tracks.json` 의 `producer.links.youtube`(또는 곡별 `links.youtube`)에 아티스트 채널 주소를 넣으면 곡 목록의 "미리듣기" 배지가 "유튜브에서 전곡 듣기 ↗" 링크로 바뀐다.
+- 전곡 파일은 사이트 저장소 밖(`shorts/library/`)에 보관하며, 수익화 구조(유료/회원 전용 스트리밍 등)를 만들 때 사용한다.
+
+## 빈 커뮤니티 채우기
+1. 공식 계정으로 아이디 `dropzone` 가입(또는 구글 계정으로 가입 후 닉네임을 `dropzone` 으로 설정)
+2. SQL Editor 에서 `supabase/seed_posts.sql` 실행 → 환영글(영/한) + 곡 공유·피드백·프로듀서·이벤트 시작 글 6개 생성. (한 번만 실행)
+3. 프로필을 꾸민다: 사진 `media/brand/avatar-400.png`, 배너 `media/brand/profile-banner.png`, 소개문과 링크는 `brand/profile-kit.md` 참고.

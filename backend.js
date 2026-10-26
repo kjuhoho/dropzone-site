@@ -48,6 +48,8 @@ function supabase() {
       else if (/daily_limit/.test(msg)) code = "daily";
       else if (/captcha/i.test(code + msg)) code = "captcha";
       else if (/new_account_limit/.test(msg)) code = "newAccount";
+      else if (/track_limit/.test(msg)) code = "trackLimit";
+      else if (/bad_links|bad_path/.test(msg)) code = msg.match(/bad_links|bad_path/)[0];
       else if (code === "23505") code = "taken";
       else if (/bad_username/.test(msg)) code = "bad_username";
       throw Object.assign(fail(code, msg), { status: r.status });
@@ -59,11 +61,11 @@ function supabase() {
   async function profile() {
     if (!sess) return;
     try {
-      const [p] = await raw(`/rest/v1/profiles?id=eq.${sess.user.id}&select=username,needs_username,accent`);
+      const [p] = await raw(`/rest/v1/profiles?id=eq.${sess.user.id}&select=username,needs_username,accent,avatar_path`);
       if (p && sess) {
         let adm = false; try { adm = (await raw("/rest/v1/rpc/is_admin", { method: "POST", body: {} })) === true; } catch {}
         let ban = null; try { ban = await raw("/rest/v1/rpc/my_ban", { method: "POST", body: {} }); } catch {}
-        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm, ban: ban || null, accent: p.accent == null ? null : p.accent } });
+        save({ ...sess, user: { ...sess.user, username: p.username, needsUsername: !!p.needs_username, isAdmin: adm, ban: ban || null, accent: p.accent == null ? null : p.accent, avatar_path: p.avatar_path || null } });
       }
       else if (!p) save(null); // 계정이 삭제된 경우
     } catch (e) { if (e.status === 401) save(null); }
@@ -128,7 +130,11 @@ function supabase() {
     follow: id => raw("/rest/v1/follows", { method: "POST", body: { followee: id }, prefer: "return=minimal" }),
     unfollow: id => raw(`/rest/v1/follows?follower=eq.${sess.user.id}&followee=eq.${q_(id)}`, { method: "DELETE" }),
     async followingIds() { if (!sess) return []; return (await raw(`/rest/v1/follows?follower=eq.${sess.user.id}&select=followee&limit=500`)).map(x => x.followee); },
-    async updateProfile({ bio, accent }) { await raw(`/rest/v1/profiles?id=eq.${sess.user.id}`, { method: "PATCH", body: { bio: bio || null, accent: accent == null ? null : accent }, prefer: "return=minimal" }); await profile(); },
+    async updateProfile(f) { await raw(`/rest/v1/profiles?id=eq.${sess.user.id}`, { method: "PATCH", body: { bio: f.bio || null, accent: f.accent == null ? null : f.accent, avatar_path: f.avatar_path || null, banner_path: f.banner_path || null, banner_style: f.banner_style == null ? null : f.banner_style, links: f.links || {} }, prefer: "return=minimal" }); await profile(); },
+    tracksOf: id => raw(`/rest/v1/tracks_feed?owner=eq.${q_(id)}&order=created_at.desc&limit=20`),
+    latestTracks: ({ offset = 0, limit = 30 } = {}) => raw(`/rest/v1/tracks_feed?order=created_at.desc&limit=${limit}&offset=${offset}`),
+    addTrack: t => raw("/rest/v1/profile_tracks", { method: "POST", body: { title: t.title, genre: t.genre || null, audio_path: t.audio_path, cover_path: t.cover_path || null }, prefer: "return=minimal" }),
+    deleteTrack: id => raw(`/rest/v1/profile_tracks?id=eq.${+id}`, { method: "DELETE" }),
     notifications: () => raw("/rest/v1/notifications_feed?order=created_at.desc&limit=50"),
     async unreadCount() { if (!sess) return 0; return (await raw("/rest/v1/notifications_feed?read=eq.false&select=id&limit=100")).length; },
     markAllRead: () => raw("/rest/v1/notifications?read=eq.false", { method: "PATCH", body: { read: true }, prefer: "return=minimal" }),
@@ -141,7 +147,7 @@ function supabase() {
         raw(`/rest/v1/posts_feed?select=created_at&created_at=gte.${since}&limit=2000`)]);
       return { events, members, posts };
     },
-    unhide: (type, id) => raw(`/rest/v1/${type === "post" ? "posts" : "comments"}?id=eq.${+id}`, { method: "PATCH", body: { hidden: false }, prefer: "return=minimal" }),
+    unhide: (type, id) => raw(`/rest/v1/${type === "post" ? "posts" : type === "track" ? "profile_tracks" : "comments"}?id=eq.${+id}`, { method: "PATCH", body: { hidden: false }, prefer: "return=minimal" }),
     dismissReport: id => raw(`/rest/v1/reports?id=eq.${+id}`, { method: "DELETE" }),
     deleteReportsFor: (type, id) => raw(`/rest/v1/reports?target_type=eq.${q_(type)}&target_id=eq.${+id}`, { method: "DELETE" }),
     async posts({ board, sort = "latest", q, author, authors, offset = 0, limit = 20 } = {}) {
@@ -177,7 +183,7 @@ function demo() {
   const db = () => rd(K) || { users: {}, posts: [], comments: [], likes: [], seq: 1, session: null };
   const put = d => wr(K, d);
   const hash = async (id, pw) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(id.toLowerCase() + ":" + pw)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); };
-  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, accent: d.users[d.session].accent == null ? null : d.users[d.session].accent, isAdmin: d.users[d.session].username === "admin", ban: (d.bans || {})[d.session] || null } : null; };
+  const me = () => { const d = db(); return d.session && d.users[d.session] ? { id: d.session, username: d.users[d.session].username, needsUsername: false, accent: d.users[d.session].accent == null ? null : d.users[d.session].accent, avatar_path: d.users[d.session].avatar_path || null, isAdmin: d.users[d.session].username === "admin", ban: (d.bans || {})[d.session] || null } : null; };
   const need = () => { const u = me(); if (!u) throw fail("auth"); return u; };
   return {
     live: false,
@@ -221,8 +227,8 @@ function demo() {
     async report(type, id, reason) { const u = need(), d = db(); d.reports = d.reports || []; if (d.reports.some(r => r.reporter === u.id && r.target_type === type && r.target_id === id)) throw fail("reportedAlready"); d.reports.push({ id: d.seq++, reporter: u.id, reporter_name: u.username, target_type: type, target_id: id, reason: reason || null, created_at: new Date().toISOString() }); put(d); },
     async reports() {
       const u = need(); if (!u.isAdmin) return []; const d = db();
-      return (d.reports || []).slice().reverse().map(r => { const c = r.target_type === "comment" ? d.comments.find(x => x.id === r.target_id) : null, p = r.target_type === "post" ? d.posts.find(x => x.id === r.target_id) : null;
-        const t = p || c; return { ...r, preview: p ? (p.title + " — " + p.body).slice(0, 300) : c ? c.body.slice(0, 300) : null, attachments: p ? p.attachments || [] : null, post_id: c ? c.post_id : r.target_id, target_author: t ? t.author : null, target_author_name: t ? t.username : null, target_hidden: !!(t && t.hidden) }; });
+      return (d.reports || []).slice().reverse().map(r => { const c = r.target_type === "comment" ? d.comments.find(x => x.id === r.target_id) : null, p = r.target_type === "post" ? d.posts.find(x => x.id === r.target_id) : null, tk = r.target_type === "track" ? (d.tracks || []).find(x => x.id === r.target_id) : null;
+        const t = p || c || (tk && { author: tk.owner, username: tk.username, hidden: tk.hidden }); return { ...r, preview: p ? (p.title + " — " + p.body).slice(0, 300) : c ? c.body.slice(0, 300) : tk ? tk.title : null, attachments: p ? p.attachments || [] : tk ? [{ p: tk.audio_path }] : null, post_id: c ? c.post_id : r.target_id, target_author: t ? t.author : null, target_author_name: t ? t.username : null, target_hidden: !!(t && t.hidden) }; });
     },
     async dismissReport(id) { const u = need(); if (!u.isAdmin) return; const d = db(); d.reports = (d.reports || []).filter(r => r.id !== id); put(d); },
     async deleteReportsFor(type, id) { const u = need(); if (!u.isAdmin) return; const d = db(); d.reports = (d.reports || []).filter(r => !(r.target_type === type && r.target_id === id)); put(d); },
@@ -235,12 +241,16 @@ function demo() {
     async createComment(post_id, body) { const u = need(), d = db(); d.comments.push({ id: d.seq++, post_id, body, author: u.id, username: u.username, created_at: new Date().toISOString() }); const po = d.posts.find(x => x.id === post_id); if (po && po.author !== u.id) (d.notifs = d.notifs || []).push({ id: d.seq++, user_id: po.author, type: "comment", post_id, actor_name: u.username, post_title: po.title, created_at: new Date().toISOString(), read: false }); put(d); },
     async deleteComment(id) { const u = need(), d = db(); d.comments = d.comments.filter(c => !(c.id === id && (c.author === u.id || u.isAdmin))); put(d); },
     async toggleLike(id, liked) { const u = need(), d = db(); d.likes = d.likes.filter(l => !(l.post_id === id && l.user_id === u.id)); if (!liked) { d.likes.push({ post_id: id, user_id: u.id }); const po = d.posts.find(x => x.id === id); if (po && po.author !== u.id) (d.notifs = d.notifs || []).push({ id: d.seq++, user_id: po.author, type: "like", post_id: id, actor_name: u.username, post_title: po.title, created_at: new Date().toISOString(), read: false }); } put(d); },
-    async profileOf(name) { const d = db(), k = name.toLowerCase(), u = d.users[k]; if (!u) return null; return { id: k, username: u.username, bio: u.bio || null, accent: u.accent == null ? null : u.accent, created_at: u.at || new Date().toISOString(), posts_count: d.posts.filter(p => p.author === k).length, followers: (d.follows || []).filter(f => f[1] === k).length, following: (d.follows || []).filter(f => f[0] === k).length }; },
+    async profileOf(name) { const d = db(), k = name.toLowerCase(), u = d.users[k]; if (!u) return null; return { id: k, username: u.username, bio: u.bio || null, accent: u.accent == null ? null : u.accent, created_at: u.at || new Date().toISOString(), posts_count: d.posts.filter(p => p.author === k).length, followers: (d.follows || []).filter(f => f[1] === k).length, following: (d.follows || []).filter(f => f[0] === k).length, avatar_path: u.avatar_path || null, banner_path: u.banner_path || null, banner_style: u.banner_style == null ? null : u.banner_style, links: u.links || {}, tracks_count: (d.tracks || []).filter(t => t.owner === k).length }; },
     async isFollowing(id) { const u = me(); return !!u && (db().follows || []).some(f => f[0] === u.id && f[1] === id); },
     async follow(id) { const u = need(), d = db(); d.follows = d.follows || []; if (!d.follows.some(f => f[0] === u.id && f[1] === id)) { d.follows.push([u.id, id]); (d.notifs = d.notifs || []).push({ id: d.seq++, user_id: id, type: "follow", post_id: null, actor_name: u.username, post_title: null, created_at: new Date().toISOString(), read: false }); } put(d); },
     async unfollow(id) { const u = need(), d = db(); d.follows = (d.follows || []).filter(f => !(f[0] === u.id && f[1] === id)); put(d); },
     async followingIds() { const u = me(); return u ? (db().follows || []).filter(f => f[0] === u.id).map(f => f[1]) : []; },
-    async updateProfile({ bio, accent }) { const u = need(), d = db(); d.users[u.id].bio = bio || null; d.users[u.id].accent = accent == null ? null : accent; put(d); },
+    async updateProfile(f) { const u = need(), d = db(), x = d.users[u.id]; x.bio = f.bio || null; x.accent = f.accent == null ? null : f.accent; x.avatar_path = f.avatar_path || null; x.banner_path = f.banner_path || null; x.banner_style = f.banner_style == null ? null : f.banner_style; x.links = f.links || {}; put(d); },
+    async tracksOf(id) { return (db().tracks || []).filter(t => t.owner === id).slice().reverse(); },
+    async latestTracks() { return (db().tracks || []).slice().reverse(); },
+    async addTrack(t) { const u = need(), d = db(); d.tracks = d.tracks || []; if (d.tracks.filter(x => x.owner === u.id).length >= 5) throw fail("trackLimit"); d.tracks.push({ id: d.seq++, owner: u.id, username: u.username, accent: u.accent, avatar_path: u.avatar_path, title: t.title, genre: t.genre || null, audio_path: t.audio_path, cover_path: t.cover_path || null, hidden: false, created_at: new Date().toISOString() }); put(d); },
+    async deleteTrack(id) { const u = need(), d = db(); d.tracks = (d.tracks || []).filter(t => !(t.id === id && (t.owner === u.id || u.isAdmin))); put(d); },
     async notifications() { const u = me(); return u ? (db().notifs || []).filter(n => n.user_id === u.id).slice().reverse() : []; },
     async unreadCount() { const u = me(); return u ? (db().notifs || []).filter(n => n.user_id === u.id && !n.read).length : 0; },
     async markAllRead() { const u = need(), d = db(); (d.notifs || []).forEach(n => { if (n.user_id === u.id) n.read = true; }); put(d); },
