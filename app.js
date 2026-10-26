@@ -30,10 +30,10 @@ async function init() {
 function renderTracks() {
   $("trackList").innerHTML = tracks.map((t, i) => [t, i]).filter(([t]) => mood === "all" || (t.moods || []).includes(mood)).map(([t, i]) => `
     <li class="track${i === cur ? " on" : ""}" data-i="${i}"><img src="${t.cover}" alt="" loading="lazy">
-    <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}${t.preview ? ` · <em class="pv">${T("tr.preview")}</em>` : ""}</small>${(t.drops || []).length ? `<div class="tdrops" aria-label="${T("tr.jump")}">${t.drops.map(s => `<button class="dj" data-t="${s}">⚡ ${fmt(s)}</button>`).join("")}</div>` : ""}</div>
+    <div><b>${t.title}</b><small>${[t.genre, t.bpm && t.bpm + " BPM"].filter(Boolean).join(" · ")}${t.preview ? (fullUrl(t) ? ` · <a class="pv" href="${fullUrl(t)}" target="_blank" rel="noopener">${T("tr.full")}</a>` : ` · <em class="pv">${T("tr.preview")}</em>`) : ""}</small>${(t.drops || []).length ? `<div class="tdrops" aria-label="${T("tr.jump")}">${t.drops.map(s => `<button class="dj" data-t="${s}">⚡ ${fmt(s)}</button>`).join("")}</div>` : ""}</div>
     <div class="track-actions"><a class="chip-btn strong go-game" href="${gameUrl(t)}" target="_blank" rel="noopener" title="${T("play.game")}" aria-label="${T("play.game")}" onclick="event.stopPropagation()">🎮</a><span class="go">▶</span></div></li>`).join("") || `<li class="empty">${T("noTracks")}</li>`;
   $("trackList").onclick = e => {
-    if (e.target.closest(".go-game")) return;
+    if (e.target.closest(".go-game") || e.target.closest("a.pv")) return;
     const dj = e.target.closest(".dj");
     if (dj) { const i = +dj.closest(".track").dataset.i, to = Math.max(0, +dj.dataset.t - 3); if (i === cur) { audio.currentTime = to; play(); } else { load(i); pendingSeek = to; play(); } return; }
     const li = e.target.closest(".track"); if (li) { const i = +li.dataset.i; i === cur ? toggle() : (load(i), play()); } };
@@ -60,6 +60,8 @@ function renderShorts() {
   };
 }
 
+// 전곡은 사이트에서 재생하지 않고 아티스트 유튜브로 안내한다 (곡별 links.youtube → 없으면 프로듀서 links.youtube)
+const fullUrl = t => (t.links && t.links.youtube) || (producer.links && producer.links.youtube) || "";
 function renderAllLinks() { renderLinks($("prLinks"), producer.links, false); renderLinks($("links"), { ...siteLinks, ...Object.fromEntries(Object.entries(producer.links || {}).filter(([, u]) => u)) }, true); }
 function renderLinks(el, l, showEmpty) {
   const on = Object.entries(l).filter(([, u]) => u);

@@ -50,7 +50,8 @@
       "moods": [
         "party",
         "workout"
-      ]
+      ],
+      "fullTrack": "not-published"
     }
   ]
 }

@@ -286,8 +286,9 @@
       "err.bad_links": "Please check your links.",
       "err.bad_path": "Invalid file.",
       "legal.t9": "Copyright: if you believe your work was uploaded without your permission, email us the link and we will remove it promptly.",
-      "tr.preview": "Preview · full track soon",
-      "tr.jump": "Jump to drop"
+      "tr.preview": "Preview · full track on ARUGA's YouTube",
+      "tr.jump": "Jump to drop",
+      "tr.full": "Full track on YouTube ↗"
     },
     "ko": {
       "tagline": "EDM을 즐기는 사람들의 공간",
@@ -569,8 +570,9 @@
       "err.bad_links": "링크를 확인해 주세요.",
       "err.bad_path": "올바르지 않은 파일이에요.",
       "legal.t9": "저작권: 내 저작물이 허락 없이 올라온 것으로 보이면 해당 링크를 이메일로 보내 주세요. 신속히 삭제하겠습니다.",
-      "tr.preview": "미리듣기 · 전곡 공개 예정",
-      "tr.jump": "드롭으로 이동"
+      "tr.preview": "미리듣기 · 전곡은 아루가 유튜브에서",
+      "tr.jump": "드롭으로 이동",
+      "tr.full": "유튜브에서 전곡 듣기 ↗"
     },
     "ja": {
       "tagline": "EDMを愛する人たちのための場所",
@@ -852,8 +854,9 @@
       "err.bad_links": "リンクを確認してください。",
       "err.bad_path": "無効なファイルです。",
       "legal.t9": "著作権:あなたの作品が無断でアップロードされていると思われる場合は、リンクをメールでお知らせください。速やかに削除します。",
-      "tr.preview": "プレビュー · フル公開予定",
-      "tr.jump": "ドロップへジャンプ"
+      "tr.preview": "プレビュー · フルはARUGAのYouTubeで",
+      "tr.jump": "ドロップへジャンプ",
+      "tr.full": "YouTubeでフルを聴く ↗"
     },
     "id": {
       "tagline": "Ruang untuk para pecinta EDM",
@@ -1135,8 +1138,9 @@
       "err.bad_links": "Periksa tautanmu.",
       "err.bad_path": "File tidak valid.",
       "legal.t9": "Hak cipta: jika Anda merasa karya Anda diunggah tanpa izin, kirimkan tautannya melalui email dan kami akan segera menghapusnya.",
-      "tr.preview": "Pratinjau · lagu lengkap segera",
-      "tr.jump": "Loncat ke drop"
+      "tr.preview": "Pratinjau · lagu lengkap di YouTube ARUGA",
+      "tr.jump": "Loncat ke drop",
+      "tr.full": "Dengar lagu lengkap di YouTube ↗"
     }
   }
 }
