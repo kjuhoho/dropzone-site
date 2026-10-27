@@ -11,7 +11,7 @@
 
 ## 2. 기본 정보
 - **채널 이름**: `dropzoneEDM.` (표시 이름을 `DROPZONE`으로 바꾸고 싶으면 맞춤 설정 → 기본 정보에서 변경)
-- **현재 채널**: `dropzoneEDM.` — https://www.youtube.com/channel/UCG3oo0pzbvzjMAQjWqzeoKA (이미 개설·업로더 연결됨). 다른 플랫폼 핸들은 이 이름과 맞추면 좋다(예: `dropzoneedm`).
+- **현재 채널**: `dropzoneEDM.` — https://www.youtube.com/@dropzone-EDM-v (채널 ID `UCG3oo0pzbvzjMAQjWqzeoKA`, 이미 개설·업로더 연결됨). 다른 플랫폼 핸들은 이 이름과 맞추면 좋다(예: `dropzoneedm`).
 - **채널 설명(1,000자 이하, 글자 수 확인 완료)**: 맞춤 설정 → 기본 정보. 기본 언어는 영어, **"언어 추가"로 한국어·일본어·인도네시아어 번역을 넣으면** 시청자 언어에 맞춰 표시된다.
 
 ### EN (418자)
