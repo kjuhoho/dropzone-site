@@ -1,0 +1,14 @@
+# Supabase 무료 플랜은 7일간 활동이 없으면 프로젝트가 일시중지된다. 하루 한 번 공개 API 를 읽어 깨워 둔다.
+name: keepalive
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read one public row
+        run: |
+          curl -fsS "https://zckhdueckqaleafhmkjl.supabase.co/rest/v1/profiles?select=username&limit=1" \
+            -H "apikey: sb_publishable_KrTLngzV870K5kzoZZKTxw_dK-2dYGl"
