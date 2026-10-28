@@ -32,6 +32,70 @@
       "poster": "media/shorts/aruga-track01-4.jpg",
       "dropAt": 136,
       "external": {}
+    },
+    {
+      "id": "aruga-stardrive-1",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-1.mp4",
+      "poster": "media/shorts/aruga-stardrive-1.jpg",
+      "dropAt": 145,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-2",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-2.mp4",
+      "poster": "media/shorts/aruga-stardrive-2.jpg",
+      "dropAt": 37,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-3",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-3.mp4",
+      "poster": "media/shorts/aruga-stardrive-3.jpg",
+      "dropAt": 109,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-4",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-4.mp4",
+      "poster": "media/shorts/aruga-stardrive-4.jpg",
+      "dropAt": 85,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-5",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-5.mp4",
+      "poster": "media/shorts/aruga-stardrive-5.jpg",
+      "dropAt": 13,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-6",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-6.mp4",
+      "poster": "media/shorts/aruga-stardrive-6.jpg",
+      "dropAt": 123,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-7",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-7.mp4",
+      "poster": "media/shorts/aruga-stardrive-7.jpg",
+      "dropAt": 145,
+      "external": {}
+    },
+    {
+      "id": "aruga-stardrive-8",
+      "track": "aruga-stardrive",
+      "video": "media/shorts/aruga-stardrive-8.mp4",
+      "poster": "media/shorts/aruga-stardrive-8.jpg",
+      "dropAt": 37,
+      "external": {}
     }
   ]
 }
