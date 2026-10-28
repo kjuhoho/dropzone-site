@@ -52,6 +52,38 @@
         "workout"
       ],
       "fullTrack": "not-published"
+    },
+    {
+      "slug": "aruga-stardrive",
+      "title": "Stardrive",
+      "genre": "EDM",
+      "bpm": null,
+      "released": "2026-10-28",
+      "cover": "media/covers/aruga-stardrive.jpg",
+      "audio": "media/audio/aruga-stardrive-preview.mp3",
+      "preview": true,
+      "drops": [
+        13,
+        37
+      ],
+      "downloadable": false,
+      "shorts": [
+        "aruga-stardrive-1",
+        "aruga-stardrive-2",
+        "aruga-stardrive-3",
+        "aruga-stardrive-4",
+        "aruga-stardrive-5",
+        "aruga-stardrive-6",
+        "aruga-stardrive-7",
+        "aruga-stardrive-8"
+      ],
+      "links": {},
+      "producer": "aruga",
+      "moods": [
+        "drive",
+        "party"
+      ],
+      "fullTrack": "not-published"
     }
   ]
 }

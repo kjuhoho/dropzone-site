@@ -16,10 +16,10 @@ a = ap.parse_args()
 db = json.loads(DATA.read_text(encoding="utf-8"))
 known = {s["id"] for s in db["shorts"]}
 out = SITE / "media" / "shorts"; out.mkdir(parents=True, exist_ok=True)
-for f in sorted(Path(a.src).glob("short_*.mp4")):
-    m = re.match(r"short_(\d+)_drop(\d+)s", f.stem)
+for f in sorted(Path(a.src).glob("*.mp4")):
+    m = re.match(r"(?:short_)?(\d+)(?:_.*?)?_?drop(\d+)s", f.stem)
     if not m: continue
-    sid = f"{a.prefix}-{a.track}-{m[1]}" if a.track != "demo-drop" else f"{a.prefix}-{m[1]}"
+    sid = f"{a.track}-{int(m[1])}" if a.track.startswith(a.prefix + "-") else (f"{a.prefix}-{a.track}-{m[1]}" if a.track != "demo-drop" else f"{a.prefix}-{m[1]}")
     if sid in known: continue
     v, p = out / f"{sid}.mp4", out / f"{sid}.jpg"
     subprocess.run(["ffmpeg","-loglevel","error","-y","-i",str(f),"-vf","scale=406:720","-c:v","libx264","-crf","30","-preset","slow","-c:a","aac","-b:a","64k","-movflags","+faststart",str(v)],check=True)
