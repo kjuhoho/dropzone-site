@@ -3,7 +3,7 @@
     "name": "DROPZONE",
     "url": "https://kjuhoho.github.io/dropzone-site/",
     "links": {
-      "youtube": "https://www.youtube.com/channel/UCG3oo0pzbvzjMAQjWqzeoKA"
+      "youtube": "https://www.youtube.com/@dropzone-EDM-v"
     }
   },
   "producer": {
@@ -50,7 +50,8 @@
       "moods": [
         "party",
         "workout"
-      ]
+      ],
+      "fullTrack": "not-published"
     },
     {
       "slug": "stardrive",
@@ -71,7 +72,8 @@
       "moods": [
         "party",
         "drive"
-      ]
+      ],
+      "fullTrack": "not-published"
     }
   ]
 }

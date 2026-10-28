@@ -18,7 +18,7 @@ function rich(s) {
 }
 const ytId = s => { const m = (s || "").match(YT_RE); return m && m[1]; };
 const hue = n => { let h = 0; for (const c of n) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
-const avatar = (n, a, cls) => `<span class="av${cls ? " " + cls : ""}" style="--h:${a != null ? +a : hue(n)}" aria-hidden="true">${esc((n || "?")[0].toUpperCase())}</span>`;
+const avatar = (n, a, cls, img) => { const u = img ? B.fileUrl(img) : null; return `<span class="av${cls ? " " + cls : ""}" style="--h:${a != null ? +a : hue(n)}" aria-hidden="true">${u ? `<img src="${esc(u)}" alt="" loading="lazy">` : esc((n || "?")[0].toUpperCase())}</span>`; };
 const userLink = n => `<a class="who" href="#/u/${encodeURIComponent(n)}">@${esc(n)}</a>`;
 const deriveTitle = body => { const l = body.trim().split("\n")[0].trim(); return (l.length > 60 ? l.slice(0, 59) + "…" : l) || "(untitled)"; };
 const showTitle = p => { const t = (p.title || "").replace(/…$/, ""); return t && !p.body.trim().startsWith(t); };
@@ -55,6 +55,7 @@ function parse() {
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, "")), [k, ...r] = h.split("/"), v = r.join("/");
   if (k === "b" && B.BOARDS.includes(v)) return { type: "board", board: v };
   if (k === "following") return { type: "following" };
+  if (k === "music") return { type: "music" };
   if (k === "notifications") return { type: "notifs" };
   if (k === "admin") return { type: "admin", tab: v === "bans" ? "bans" : v === "stats" ? "stats" : "reports" };
   if (k === "p" && +v) return { type: "post", id: +v };
@@ -70,7 +71,7 @@ function renderNav() {
   const item = (href, label, on, ic) => `<a href="${href}" class="${on ? "on" : ""}"${on ? ' aria-current="page"' : ""}><span class="ic">${ic}</span>${esc(label)}</a>`;
   const ICON = { lounge: "💬", share: "🎧", feedback: "🎚️", producers: "🎛️", gear: "🔌", events: "🎪", collab: "🤝", memes: "😂" };
   const me = B.user();
-  $("boardNav").innerHTML = item("#/", T("c.home"), route.type === "home", "🏠") + (me ? item("#/following", T("c.following"), route.type === "following", "👥") : "") + B.BOARDS.map(b => item("#/b/" + b, boardName(b), route.type === "board" && route.board === b, ICON[b])).join("")
+  $("boardNav").innerHTML = item("#/", T("c.home"), route.type === "home", "🏠") + (me ? item("#/following", T("c.following"), route.type === "following", "👥") : "") + item("#/music", T("c.music"), route.type === "music", "🎧") + B.BOARDS.map(b => item("#/b/" + b, boardName(b), route.type === "board" && route.board === b, ICON[b])).join("")
     + (me && me.isAdmin ? item("#/admin", T("c.admin") + (adminCount ? ` (${adminCount})` : ""), route.type === "admin", "🛡️") : "");
 }
 
@@ -85,7 +86,8 @@ function renderHead() {
   else if (route.type === "admin") title = T("c.adminTitle");
   else if (route.type === "following") title = T("c.following");
   else if (route.type === "notifs") title = T("c.notifs");
-  const list = route.type !== "post" && route.type !== "admin" && route.type !== "notifs";
+  else if (route.type === "music") title = T("c.music");
+  const list = route.type !== "post" && route.type !== "admin" && route.type !== "notifs" && route.type !== "music";
   const tabs = list ? `<div class="view" role="group" aria-label="${esc(T("c.viewLabel"))}"><button data-view="feed" class="${viewMode === "feed" ? "on" : ""}">${esc(T("c.viewFeed"))}</button><button data-view="list" class="${viewMode === "list" ? "on" : ""}">${esc(T("c.viewList"))}</button></div><div class="sort" role="tablist" aria-label="${esc(T("c.sortLabel"))}">
     <button role="tab" data-sort="latest" aria-selected="${sort === "latest"}" class="${sort === "latest" ? "on" : ""}">${esc(T("c.sortLatest"))}</button>
     <button role="tab" data-sort="top" aria-selected="${sort === "top"}" class="${sort === "top" ? "on" : ""}">${esc(T("c.sortTop"))}</button></div>` : "";
@@ -125,7 +127,7 @@ function renderComposer() {
   const prev = $("cBody") ? [$("cTitle").value, $("cBody").value] : ["", ""];
   if (route.type === "board") postBoard = route.board;
   box.innerHTML = `<form class="composer" id="composer">
-    ${avatar(u.username || "?", u.accent)}
+    ${avatar(u.username || "?", u.accent, "", u.avatar_path)}
     <div class="c-fields">
       <input id="cTitle" maxlength="100" placeholder="${esc(T("c.titleOptPh"))}">
       <textarea id="cBody" rows="3" maxlength="2000" placeholder="${esc(T("c.bodyPh"))}"></textarea>
@@ -185,7 +187,7 @@ function actions(p, detail) {
 function embed(p) { const id = ytId(p.body); return id ? `<button class="yt" data-yt="${id}">${esc(T("c.watch"))}</button>` : ""; }
 function card(p, detail) {
   return `<article class="post${detail ? " detail" : ""}" data-id="${p.id}" ${detail ? "" : 'tabindex="0"'}>
-    ${avatar(p.username, p.accent)}
+    ${avatar(p.username, p.accent, "", p.avatar_path)}
     <div class="p-main">
       <div class="p-top">${userLink(p.username)}<span class="dot">·</span><time datetime="${esc(p.created_at)}">${esc(DZ.ago(p.created_at))}</time><a class="btag" href="#/b/${p.board}">${esc(boardName(p.board))}</a></div>
       ${p.hidden ? `<div class="hid">${esc(T("c.hiddenTag"))}</div>` : ""}
@@ -198,7 +200,7 @@ function card(p, detail) {
 }
 function cmtCard(c) {
   const me = B.user(), mine = me && me.id === c.author, canDel = mine || (me && me.isAdmin);
-  return `<div class="cmt" data-c="${c.id}">${avatar(c.username, c.accent)}<div class="p-main">
+  return `<div class="cmt" data-c="${c.id}">${avatar(c.username, c.accent, "", c.avatar_path)}<div class="p-main">
     <div class="p-top">${userLink(c.username)}<span class="dot">·</span><time datetime="${esc(c.created_at)}">${esc(DZ.ago(c.created_at))}</time></div>
     ${c.hidden ? `<div class="hid">${esc(T("c.hiddenTag"))}</div>` : ""}
     <div class="p-body">${rich(c.body)}</div>
@@ -210,6 +212,7 @@ const lrow = p => `<a class="lrow" href="#/p/${p.id}"><span class="lb">${esc(boa
 function renderList() {
   if (route.type === "admin") return renderAdmin();
   if (route.type === "notifs") return loadNotifs();
+  if (route.type === "music") return renderMusic();
   $("postList").innerHTML = posts.length ? (viewMode === "list" ? `<div class="board-list">${posts.map(lrow).join("")}</div>` : posts.map(p => card(p)).join("")) : `<p class="empty">${esc(T(route.type === "search" || route.type === "user" ? "c.noResults" : route.type === "following" ? "c.followEmpty" : "c.empty"))}</p>`;
   $("more").hidden = !hasMore; $("more").textContent = T("c.loadMore");
 }
@@ -217,7 +220,7 @@ function renderDetail() {
   if (!single) { $("postList").innerHTML = `<p class="empty">${esc(T("c.noPostFound"))}</p>`; $("more").hidden = true; return; }
   const me = B.user();
   $("postList").innerHTML = card(single, true) + `<div class="thread">
-    ${me && me.ban ? banNote() : me ? `<form class="cmt-form" id="cmtForm">${avatar(me.username || "?", me.accent)}<input id="cmtIn" maxlength="500" placeholder="${esc(T("c.commentPh"))}" autocomplete="off"><button class="cta small">${esc(T("c.send"))}</button></form>` : `<button class="linkish" data-a="login">${esc(T("c.loginToPost"))}</button>`}
+    ${me && me.ban ? banNote() : me ? `<form class="cmt-form" id="cmtForm">${avatar(me.username || "?", me.accent, "", me.avatar_path)}<input id="cmtIn" maxlength="500" placeholder="${esc(T("c.commentPh"))}" autocomplete="off"><button class="cta small">${esc(T("c.send"))}</button></form>` : `<button class="linkish" data-a="login">${esc(T("c.loginToPost"))}</button>`}
     <div id="cmtList">${comments.map(cmtCard).join("")}</div></div>`;
   $("more").hidden = true;
 }
@@ -254,38 +257,164 @@ async function loadNotifs() {
   } catch { if (my === loadSeq) $("postList").innerHTML = `<p class="empty">${esc(T("c.loadFail"))}</p>`; }
 }
 
-/* ---------- 프로필 ---------- */
+/* ---------- 프로필 / 음원 ---------- */
 const HUES = [null, 0, 25, 50, 140, 190, 220, 270, 320];
+const LINK_KEYS = [["instagram", "Instagram"], ["youtube", "YouTube"], ["tiktok", "TikTok"], ["soundcloud", "SoundCloud"], ["spotify", "Spotify"], ["website", "Website"]];
+const LINK_RE = /^https:\/\/[^\s<>"]{3,200}$/;
+let edit = null, upl = null, profileCur = null, musicRows = [];
+
+async function coverCrop(file, w, h, name) {   // 가운데 기준으로 꽉 채워 자른 JPEG
+  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const sc = Math.max(w / bmp.width, h / bmp.height), cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const g = cv.getContext("2d"); g.fillStyle = "#07060d"; g.fillRect(0, 0, w, h);
+  g.drawImage(bmp, (w - bmp.width * sc) / 2, (h - bmp.height * sc) / 2, bmp.width * sc, bmp.height * sc);
+  const blob = await new Promise(r => cv.toBlob(r, "image/jpeg", 0.88));
+  return new File([blob], name, { type: "image/jpeg" });
+}
+const fileErr = ex => ex.code === "fileBig" ? T("c.fileBig") : ex.code === "fileBad" ? T("c.fileBad") : ex.code === "demoFile" ? T("c.demoFile") : DZ.errText(ex);
+
+function trackCard(t) {
+  const me = B.user(), mine = !!(me && me.id === t.owner), canDel = mine || !!(me && me.isAdmin);
+  const au = B.fileUrl(t.audio_path), cu = t.cover_path ? B.fileUrl(t.cover_path) : null; if (!au) return "";
+  return `<div class="trk" data-tid="${t.id}" data-ap="${esc(t.audio_path)}" data-cp="${esc(t.cover_path || "")}">
+    <div class="tk-cover">${cu ? `<img src="${esc(cu)}" alt="" loading="lazy">` : "🎵"}</div>
+    <div class="tk-main"><div class="tk-top"><b>${esc(t.title)}</b>${t.hidden ? `<span class="hid">${esc(T("c.hiddenTag"))}</span>` : ""}</div>
+      <small>${[t.genre ? esc(t.genre) : "", t.username ? userLink(t.username) : "", esc(DZ.ago(t.created_at))].filter(Boolean).join(" · ")}</small>
+      <audio controls preload="none" src="${esc(au)}"></audio></div>
+    <div class="acts">${me && !mine ? `<button class="act sub" data-tk="report" aria-label="${esc(T("c.report"))}">⚑</button>` : ""}${canDel ? `<button class="act del" data-tk="del" aria-label="${esc(T("c.delete"))}">🗑</button>` : ""}</div></div>`;
+}
+async function trackClick(e) {
+  const el = e.target.closest("[data-tk]"); if (!el) return;
+  const card = el.closest(".trk"), id = +card.dataset.tid;
+  try {
+    if (el.dataset.tk === "del") {
+      if (!confirm(T("c.confirmDelete"))) return;
+      await B.deleteTrack(id); B.removeFiles([card.dataset.ap, card.dataset.cp].filter(Boolean));
+      if (B.user() && B.user().isAdmin) { try { await B.deleteReportsFor("track", id); } catch {} }
+      route.type === "music" ? loadMusic() : renderProfile();
+    } else if (el.dataset.tk === "report") {
+      if (!confirm(T("c.reportAsk"))) return;
+      try { await B.report("track", id); DZ.toast(T("c.reported")); } catch (ex) { DZ.toast(ex.code === "reportedAlready" ? T("c.reportedAlready") : DZ.errText(ex)); }
+    }
+  } catch (ex) { DZ.toast(DZ.errText(ex)); }
+}
+$("postList").addEventListener("click", trackClick);
+$("profileBox").addEventListener("click", trackClick);
+
+function renderMusic() {
+  $("more").hidden = true;
+  $("postList").innerHTML = musicRows.length ? `<div class="trk-list">${musicRows.map(trackCard).join("")}</div>` : `<p class="empty">${esc(T("c.musicEmpty"))}</p>`;
+}
+async function loadMusic() {
+  const my = ++loadSeq; $("more").hidden = true; $("postList").innerHTML = `<p class="fine pad">${esc(T("c.loading"))}</p>`;
+  try { const rows = await B.latestTracks({ limit: 30 }); if (my !== loadSeq) return; musicRows = rows || []; renderMusic(); }
+  catch { if (my === loadSeq) $("postList").innerHTML = `<p class="empty">${esc(T("c.loadFail"))}</p>`; }
+}
+
 async function renderProfile() {
   const box = $("profileBox"); if (route.type !== "user") { box.innerHTML = ""; return; }
   let pr = null; try { pr = await B.profileOf(route.user); } catch {}
   if (route.type !== "user") return;
   if (!pr) { box.innerHTML = `<p class="empty">${esc(T("c.noProfile"))}</p>`; return; }
+  profileCur = pr;
   const me = B.user(), self = !!(me && me.username && me.username.toLowerCase() === pr.username.toLowerCase());
   let following = false; if (me && !self) { try { following = await B.isFollowing(pr.id); } catch {} }
+  let tracks = []; try { tracks = (await B.tracksOf(pr.id)) || []; } catch {}
   const joined = new Intl.DateTimeFormat(DZ.lang, { year: "numeric", month: "short" }).format(new Date(pr.created_at));
-  box.innerHTML = `<div class="pcard">${avatar(pr.username, pr.accent, "lg")}<div class="pc-main">
+  const bUrl = pr.banner_path ? B.fileUrl(pr.banner_path) : null;
+  const links = LINK_KEYS.filter(([k]) => pr.links && LINK_RE.test(pr.links[k] || "")).map(([k, n]) => `<a class="chip-btn" href="${esc(pr.links[k])}" target="_blank" rel="noopener nofollow ugc">${n}</a>`).join("");
+  box.innerHTML = `<div class="pbanner s${pr.banner_style == null ? 0 : +pr.banner_style}"${bUrl ? ` style="background-image:url('${esc(bUrl)}')"` : ""}></div>
+    <div class="pcard">${avatar(pr.username, pr.accent, "lg", pr.avatar_path)}<div class="pc-main">
     <div class="pc-top"><h2 class="pc-name">@${esc(pr.username)}</h2>${self ? `<button class="chip-btn" data-p="edit">${esc(T("c.editProfile"))}</button>` : `<button class="chip-btn${following ? "" : " strong"}" data-p="follow" data-uid="${esc(pr.id)}" data-f="${following ? 1 : 0}">${esc(following ? T("c.unfollow") : T("c.follow"))}</button>`}</div>
     ${pr.bio ? `<p class="pc-bio">${esc(pr.bio)}</p>` : ""}
-    <div class="pc-stats"><span><b>${pr.posts_count}</b> ${esc(T("c.postsN"))}</span><span><b>${pr.followers}</b> ${esc(T("c.followers"))}</span><span><b>${pr.following}</b> ${esc(T("c.followingN"))}</span><span class="fine">${esc(T("c.joined", { d: joined }))}</span></div></div></div><div id="pedit"></div>`;
-  box.dataset.bio = pr.bio || ""; box.dataset.accent = pr.accent == null ? "" : pr.accent;
+    ${links ? `<div class="pc-links">${links}</div>` : ""}
+    <div class="pc-stats"><span><b>${pr.posts_count}</b> ${esc(T("c.postsN"))}</span><span><b>${pr.followers}</b> ${esc(T("c.followers"))}</span><span><b>${pr.following}</b> ${esc(T("c.followingN"))}</span><span class="fine">${esc(T("c.joined", { d: joined }))}</span></div></div></div>
+    <div id="pedit"></div>
+    <section class="ptracks"><div class="pt-head"><h3>🎧 ${esc(T("c.myMusic"))}</h3>${self && tracks.length < 5 ? `<button class="chip-btn strong" data-p="upload">${esc(T("c.uploadTrack"))}</button>` : ""}</div><div id="pupload"></div>
+    ${tracks.length ? tracks.map(trackCard).join("") : `<p class="fine pad">${esc(T("c.noTracks"))}</p>`}</section>`;
 }
+
+function openEdit() {
+  const pr = profileCur; edit = { avatarFile: null, avatarRemove: false, bannerFile: null, bannerRemove: false, style: pr.banner_style == null ? 0 : +pr.banner_style, accent: pr.accent == null ? null : +pr.accent };
+  $("pedit").innerHTML = `<form class="pform" id="pform">
+    <div class="pf"><span>${esc(T("c.avatarLbl"))}</span><div class="pf-row"><button type="button" class="chip-btn" data-p="pickAv">${esc(T("c.uploadImg"))}</button><button type="button" class="linkish" data-p="rmAv">${esc(T("c.removeImage"))}</button><span class="fine" id="pAvName"></span></div></div>
+    <div class="pf"><span>${esc(T("c.bannerLbl"))}</span><div class="pf-row"><button type="button" class="chip-btn" data-p="pickBn">${esc(T("c.uploadImg"))}</button><button type="button" class="linkish" data-p="rmBn">${esc(T("c.removeImage"))}</button><span class="fine" id="pBnName"></span></div></div>
+    <div class="pf"><span>${esc(T("c.bannerStyle"))}</span><div class="swatches">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<button type="button" class="sw bs s${i}${i === edit.style ? " on" : ""}" data-p="bstyle" data-i="${i}" aria-label="${i + 1}"></button>`).join("")}</div></div>
+    <div class="pf"><span>${esc(T("c.accentLbl"))}</span><div class="swatches">${HUES.map(h => `<button type="button" class="sw ac${h === edit.accent ? " on" : ""}" data-p="hue" data-h="${h == null ? "" : h}" style="--h:${h == null ? 200 : h}" title="${h == null ? esc(T("c.auto")) : h}">${h == null ? "A" : ""}</button>`).join("")}</div></div>
+    <textarea id="pBio" maxlength="300" rows="3" placeholder="${esc(T("c.bioPh"))}"></textarea>
+    <div class="pf"><span>${esc(T("c.linksLbl"))}</span><div class="links-grid">${LINK_KEYS.map(([k, n]) => `<input data-link="${k}" placeholder="${n} — https://…" maxlength="200" inputmode="url" autocomplete="off" spellcheck="false">`).join("")}</div></div>
+    <input type="file" id="fAv" accept="image/jpeg,image/png,image/webp" hidden><input type="file" id="fBn" accept="image/jpeg,image/png,image/webp" hidden>
+    <div class="c-row"><button class="cta small" type="submit" id="pSave">${esc(T("c.saveProfile"))}</button><button type="button" class="linkish" data-p="cancel">${esc(T("auth.close"))}</button></div></form>`;
+  $("pBio").value = pr.bio || "";
+  document.querySelectorAll("[data-link]").forEach(i => i.value = (pr.links && pr.links[i.dataset.link]) || "");
+  const pick = (id, key, nameId) => $(id).onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return DZ.toast(T("c.fileBad")); if (f.size > 15e6) return DZ.toast(T("c.fileBig")); edit[key + "File"] = f; edit[key + "Remove"] = false; $(nameId).textContent = f.name; };
+  pick("fAv", "avatar", "pAvName"); pick("fBn", "banner", "pBnName");
+  $("pform").onsubmit = saveProfile;
+}
+async function saveProfile(ev) {
+  ev.preventDefault();
+  const links = {};
+  for (const inp of document.querySelectorAll("[data-link]")) { const v = inp.value.trim(); if (!v) continue; if (!LINK_RE.test(v)) return DZ.toast(T("c.badLink")); links[inp.dataset.link] = v; }
+  const btn = $("pSave"); btn.disabled = true; const up = [], old = [];
+  try {
+    let avatar_path = profileCur.avatar_path || null, banner_path = profileCur.banner_path || null;
+    if (edit.avatarRemove) { if (avatar_path) old.push(avatar_path); avatar_path = null; }
+    if (edit.avatarFile) { const p = await B.upload(await coverCrop(edit.avatarFile, 256, 256, "avatar.jpg")); up.push(p); if (avatar_path) old.push(avatar_path); avatar_path = p; }
+    if (edit.bannerRemove) { if (banner_path) old.push(banner_path); banner_path = null; }
+    if (edit.bannerFile) { const p = await B.upload(await coverCrop(edit.bannerFile, 1200, 400, "banner.jpg")); up.push(p); if (banner_path) old.push(banner_path); banner_path = p; }
+    await B.updateProfile({ bio: $("pBio").value.trim(), accent: edit.accent, avatar_path, banner_path, banner_style: edit.style, links });
+    B.removeFiles(old); DZ.toast(T("c.profileSaved")); edit = null;
+    renderComposer(); await renderProfile(); loadList(true);
+  } catch (ex) { B.removeFiles(up); DZ.toast(fileErr(ex)); }
+  finally { const b2 = $("pSave"); if (b2) b2.disabled = false; }
+}
+
+function openUpload() {
+  upl = { audio: null, cover: null };
+  $("pupload").innerHTML = `<form class="pform" id="tform">
+    <div class="pf-row"><button type="button" class="chip-btn" data-p="pickAud">🎵 ${esc(T("c.pickAudio"))}</button><span class="fine" id="tAudName"></span></div>
+    <input id="tTitle" maxlength="80" placeholder="${esc(T("c.trackTitle"))}"><input id="tGenre" maxlength="30" placeholder="${esc(T("c.trackGenre"))}">
+    <div class="pf-row"><button type="button" class="chip-btn" data-p="pickCov">🖼 ${esc(T("c.trackCover"))}</button><span class="fine" id="tCovName"></span></div>
+    <label class="show"><input type="checkbox" id="tRights"> <span>${esc(T("c.rights"))}</span></label>
+    <p class="fine">${esc(T("c.trackHint"))}</p>
+    <input type="file" id="fTa" accept="audio/mpeg,audio/mp4,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.wav,.ogg,.aac" hidden><input type="file" id="fTc" accept="image/jpeg,image/png,image/webp" hidden>
+    <div class="c-row"><button class="cta small" type="submit" id="tSave">${esc(T("c.post"))}</button><button type="button" class="linkish" data-p="cancelUp">${esc(T("auth.close"))}</button></div></form>`;
+  $("fTa").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; if (kindOf(f) !== "audio") return DZ.toast(T("c.fileBad")); if (f.size > 12e6) return DZ.toast(T("c.fileBig")); upl.audio = f; $("tAudName").textContent = f.name; if (!$("tTitle").value) $("tTitle").value = f.name.replace(/\.[^.]+$/, "").slice(0, 80); };
+  $("fTc").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return DZ.toast(T("c.fileBad")); if (f.size > 15e6) return DZ.toast(T("c.fileBig")); upl.cover = f; $("tCovName").textContent = f.name; };
+  $("tform").onsubmit = async ev => {
+    ev.preventDefault();
+    if (!upl.audio) return DZ.toast(T("c.pickAudioFirst"));
+    if (!$("tRights").checked) return DZ.toast(T("c.rightsErr"));
+    const title = $("tTitle").value.trim() || upl.audio.name.replace(/\.[^.]+$/, "").slice(0, 80), btn = $("tSave"), up = [];
+    btn.disabled = true;
+    try {
+      const ap = await B.upload(new File([upl.audio], upl.audio.name, { type: audType(upl.audio) })); up.push(ap);
+      let cp = null; if (upl.cover) { cp = await B.upload(await coverCrop(upl.cover, 600, 600, "cover.jpg")); up.push(cp); }
+      await B.addTrack({ title, genre: $("tGenre").value.trim(), audio_path: ap, cover_path: cp });
+      DZ.toast(T("c.trackAdded")); upl = null; await renderProfile();
+    } catch (ex) { B.removeFiles(up); DZ.toast(fileErr(ex)); }
+    finally { const b2 = $("tSave"); if (b2) b2.disabled = false; }
+  };
+}
+
 $("profileBox").onclick = async e => {
-  const b = e.target.closest("[data-p]"); if (!b) return; const a = b.dataset.p, box = $("profileBox");
+  const b = e.target.closest("[data-p]"); if (!b) return; const a = b.dataset.p;
   try {
     if (a === "follow") {
       if (!B.user()) return DZ.openAuth("login");
       b.dataset.f === "1" ? await B.unfollow(b.dataset.uid) : await B.follow(b.dataset.uid); await renderProfile();
-    } else if (a === "edit") {
-      const cur = box.dataset.accent === "" ? null : +box.dataset.accent;
-      $("pedit").innerHTML = `<form class="pform" id="pform"><textarea id="pBio" maxlength="160" rows="3" placeholder="${esc(T("c.bioPh"))}"></textarea>
-        <div class="swatches" role="radiogroup" aria-label="${esc(T("c.accentLbl"))}">${HUES.map(h => `<button type="button" class="sw${h === cur ? " on" : ""}" data-p="hue" data-h="${h == null ? "" : h}" style="--h:${h == null ? 200 : h}" title="${h == null ? esc(T("c.auto")) : h}">${h == null ? "A" : ""}</button>`).join("")}</div>
-        <div class="c-row"><button class="cta small" type="submit">${esc(T("c.saveProfile"))}</button><button type="button" class="linkish" data-p="cancel">${esc(T("auth.close"))}</button></div></form>`;
-      $("pBio").value = box.dataset.bio; $("pform").dataset.accent = box.dataset.accent;
-      $("pform").onsubmit = async ev => { ev.preventDefault(); const ac = $("pform").dataset.accent; try { await B.updateProfile({ bio: $("pBio").value.trim(), accent: ac === "" ? null : +ac }); DZ.toast(T("c.profileSaved")); renderComposer(); await renderProfile(); loadList(true); } catch (ex) { DZ.toast(DZ.errText(ex)); } };
-    } else if (a === "hue") {
-      $("pform").dataset.accent = b.dataset.h; document.querySelectorAll(".sw").forEach(x => x.classList.toggle("on", x === b));
-    } else if (a === "cancel") $("pedit").innerHTML = "";
+    } else if (a === "edit") openEdit();
+    else if (a === "cancel") $("pedit").innerHTML = "";
+    else if (a === "hue") { edit.accent = b.dataset.h === "" ? null : +b.dataset.h; document.querySelectorAll(".sw.ac").forEach(x => x.classList.toggle("on", x === b)); }
+    else if (a === "bstyle") { edit.style = +b.dataset.i; document.querySelectorAll(".sw.bs").forEach(x => x.classList.toggle("on", x === b)); }
+    else if (a === "pickAv") $("fAv").click();
+    else if (a === "pickBn") $("fBn").click();
+    else if (a === "rmAv") { edit.avatarRemove = true; edit.avatarFile = null; $("pAvName").textContent = "✕"; }
+    else if (a === "rmBn") { edit.bannerRemove = true; edit.bannerFile = null; $("pBnName").textContent = "✕"; }
+    else if (a === "upload") openUpload();
+    else if (a === "cancelUp") $("pupload").innerHTML = "";
+    else if (a === "pickAud") $("fTa").click();
+    else if (a === "pickCov") $("fTc").click();
   } catch (ex) { DZ.toast(DZ.errText(ex)); }
 };
 
@@ -315,10 +444,10 @@ function renderAdmin() {
   if (route.tab === "bans") return renderBans();
   $("more").hidden = true;
   $("postList").innerHTML = reportRows.length ? reportRows.map(r => `<div class="rep" data-rid="${r.id}" data-type="${esc(r.target_type)}" data-tid="${r.target_id}">
-    <div class="p-top"><span class="rtype">${esc(T(r.target_type === "post" ? "c.typePost" : "c.typeComment"))}</span><span class="dot">·</span><span>${esc(T("c.byReporter", { u: r.reporter_name }))}</span><span class="dot">·</span><time>${esc(DZ.ago(r.created_at))}</time></div>
+    <div class="p-top"><span class="rtype">${esc(T(r.target_type === "post" ? "c.typePost" : r.target_type === "track" ? "c.typeTrack" : "c.typeComment"))}</span><span class="dot">·</span><span>${esc(T("c.byReporter", { u: r.reporter_name }))}</span><span class="dot">·</span><time>${esc(DZ.ago(r.created_at))}</time></div>
     <div class="p-body">${r.preview ? esc(r.preview) : `<i>${esc(T("c.adminGone"))}</i>`}</div>
     ${r.reason ? `<div class="fine">“${esc(r.reason)}”</div>` : ""}
-    <div class="acts"><a class="act" href="#/p/${r.post_id}">${esc(T("c.adminOpen"))}</a>${r.preview ? `<button class="act del" data-a="adel">${esc(T("c.adminDelete"))}</button>` : ""}${r.target_hidden ? `<button class="act" data-a="aunhide">${esc(T("c.restore"))}</button>` : ""}<button class="act" data-a="adis">${esc(T("c.adminDismiss"))}</button></div>
+    <div class="acts"><a class="act" href="${r.target_type === "track" ? "#/music" : "#/p/" + r.post_id}">${esc(T("c.adminOpen"))}</a>${r.preview ? `<button class="act del" data-a="adel">${esc(T("c.adminDelete"))}</button>` : ""}${r.target_hidden ? `<button class="act" data-a="aunhide">${esc(T("c.restore"))}</button>` : ""}<button class="act" data-a="adis">${esc(T("c.adminDismiss"))}</button></div>
     ${r.target_author && r.preview ? `<div class="susp-row"><select class="susp" aria-label="${esc(T("c.suspendBtn"))}"><option value="1">${esc(T("c.nDays", { n: 1 }))}</option><option value="7">${esc(T("c.nDays", { n: 7 }))}</option><option value="30">${esc(T("c.nDays", { n: 30 }))}</option><option value="0">${esc(T("c.permanent"))}</option></select><input class="susp-why" maxlength="100" placeholder="${esc(T("c.suspendReason"))}"><button class="act del" data-a="aban" data-uid="${esc(r.target_author)}">${esc(T("c.suspendBtn"))} @${esc(r.target_author_name || "")}</button></div>` : ""}</div>`).join("") : `<p class="empty">${esc(T("c.adminNone"))}</p>`;
 }
 async function loadAdmin() {
@@ -330,7 +459,7 @@ async function loadAdmin() {
   }
   catch { if (my === loadSeq) $("postList").innerHTML = `<p class="empty">${esc(T("c.loadFail"))}</p>`; }
 }
-const reload = () => route.type === "post" ? loadPost() : route.type === "admin" ? loadAdmin() : route.type === "notifs" ? loadNotifs() : loadList(true);
+const reload = () => route.type === "post" ? loadPost() : route.type === "admin" ? loadAdmin() : route.type === "notifs" ? loadNotifs() : route.type === "music" ? loadMusic() : loadList(true);
 
 /* ---------- 인기 태그 ---------- */
 async function renderTags() {
@@ -386,7 +515,7 @@ $("postList").onclick = async e => {
       if (el.dataset.a === "adel") {
         if (!confirm(T("c.adminConfirm"))) return;
         const rr = reportRows.find(x => x.id === rid);
-        if (type === "post") { await B.deletePost(tid); B.removeFiles(((rr && rr.attachments) || []).map(a => a.p)); } else await B.deleteComment(tid);
+        if (type === "post") { await B.deletePost(tid); B.removeFiles(((rr && rr.attachments) || []).map(a => a.p)); } else if (type === "track") { await B.deleteTrack(tid); B.removeFiles(((rr && rr.attachments) || []).map(a => a.p)); } else await B.deleteComment(tid);
         await B.deleteReportsFor(type, tid); DZ.toast(T("c.adminDeleted"));
       } else await B.dismissReport(rid);
       tagsCache = null; await loadAdmin();

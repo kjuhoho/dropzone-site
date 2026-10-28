@@ -303,3 +303,35 @@ dialog #nId,dialog #acConfirm{width:100%;background:var(--bg);color:var(--fg);bo
 .tdrops{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .dj{padding:7px 14px;border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--c1);background:#00f0ff0f}
 .dj:hover{border-color:var(--c1);background:#00f0ff22}
+
+/* ===== 프로필 꾸미기 / 내 음원 ===== */
+.av{overflow:hidden}.av img{width:100%;height:100%;object-fit:cover;display:block}
+.pbanner{height:130px;background-size:cover;background-position:center;border-bottom:1px solid var(--line)}
+.pbanner.s0,.sw.bs.s0{background-image:linear-gradient(120deg,#0b5e6e,#4a1f6e)}
+.pbanner.s1,.sw.bs.s1{background-image:linear-gradient(120deg,#ff2bd6,#7a2bff)}
+.pbanner.s2,.sw.bs.s2{background-image:linear-gradient(120deg,#00f0ff,#2b6bff)}
+.pbanner.s3,.sw.bs.s3{background-image:linear-gradient(120deg,#ff8a2b,#ff2b6e)}
+.pbanner.s4,.sw.bs.s4{background-image:linear-gradient(120deg,#12c27a,#0b6e8a)}
+.pbanner.s5,.sw.bs.s5{background-image:linear-gradient(120deg,#f6d33a,#ff7a2b)}
+.pbanner.s6,.sw.bs.s6{background-image:linear-gradient(120deg,#2a2a3a,#6b6b8a)}
+.pbanner.s7,.sw.bs.s7{background-image:linear-gradient(120deg,#07060d,#3a1f7a 55%,#00f0ff)}
+.pcard{margin-top:-40px;position:relative}
+.pcard .av.lg{border:4px solid #0b0a14;box-sizing:content-box}
+.pc-links{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.sw.bs{border-radius:10px;width:44px}
+.pf{display:grid;gap:6px;font-size:13px;color:var(--dim)}
+.pf-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.links-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.pform input:not([type=checkbox]):not([type=file]){background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:14px;width:100%}
+.pform label.show{display:flex;gap:8px;align-items:center;font-size:13px}
+.ptracks{border-top:1px solid var(--line)}
+.pt-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
+.pt-head h3{margin:0;font-size:16px}
+.trk{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start}
+.tk-cover{flex:none;width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--panel);display:grid;place-items:center;font-size:26px}
+.tk-cover img{width:100%;height:100%;object-fit:cover}
+.tk-main{flex:1;min-width:0;display:grid;gap:4px}
+.tk-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tk-main small{color:var(--dim)}
+.tk-main audio{width:100%;height:34px;margin-top:2px}
+.trk .acts{margin-top:0}
