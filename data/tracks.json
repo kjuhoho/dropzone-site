@@ -51,6 +51,27 @@
         "party",
         "workout"
       ]
+    },
+    {
+      "slug": "stardrive",
+      "title": "Stardrive",
+      "genre": "EDM",
+      "bpm": null,
+      "released": "2026-10-28",
+      "cover": "media/covers/stardrive.jpg",
+      "audio": "media/audio/stardrive-preview.mp3",
+      "preview": true,
+      "drops": [
+        13,
+        73
+      ],
+      "downloadable": false,
+      "links": {},
+      "producer": "aruga",
+      "moods": [
+        "party",
+        "drive"
+      ]
     }
   ]
 }
