@@ -26,30 +26,113 @@
   ],
   "tracks": [
     {
-      "slug": "aruga-track01",
-      "title": "Track 01",
+      "slug": "aruga-sweet-wind",
+      "title": "Sweet Wind",
       "genre": "EDM",
-      "bpm": null,
-      "released": "2026-10-25",
-      "cover": "media/covers/aruga-track01.jpg",
-      "audio": "media/audio/aruga-track01-preview.mp3",
+      "bpm": 138,
+      "released": "2026-11-16",
+      "cover": "media/covers/aruga-sweet-wind.jpg",
+      "audio": "media/audio/aruga-sweet-wind-preview.mp3",
       "preview": true,
       "drops": [
-        15,
-        45
+        14,
+        42,
+        52
+      ],
+      "downloadable": false,
+      "shorts": [],
+      "links": {},
+      "producer": "aruga",
+      "moods": [
+        "workout",
+        "focus"
+      ],
+      "fullTrack": "not-published"
+    },
+    {
+      "slug": "aruga-hoping-star",
+      "title": "Hoping Star",
+      "genre": "EDM",
+      "bpm": 128,
+      "released": "2026-11-14",
+      "cover": "media/covers/aruga-hoping-star.jpg",
+      "audio": "media/audio/aruga-hoping-star-preview.mp3",
+      "preview": true,
+      "drops": [
+        19,
+        34,
+        53
       ],
       "downloadable": false,
       "shorts": [
-        "aruga-track01-1",
-        "aruga-track01-2",
-        "aruga-track01-3",
-        "aruga-track01-4"
+        "aruga-hoping-star-8",
+        "aruga-hoping-star-12",
+        "aruga-hoping-star-13",
+        "aruga-hoping-star-18"
+      ],
+      "links": {},
+      "producer": "aruga",
+      "moods": [
+        "drive",
+        "party"
+      ],
+      "fullTrack": "not-published"
+    },
+    {
+      "slug": "aruga-eclipse-ray",
+      "title": "Eclipse Ray",
+      "genre": "EDM",
+      "bpm": 128,
+      "released": "2026-11-11",
+      "cover": "media/covers/aruga-eclipse-ray.jpg",
+      "audio": "media/audio/aruga-eclipse-ray-preview.mp3",
+      "preview": true,
+      "drops": [
+        15,
+        45,
+        60
+      ],
+      "downloadable": false,
+      "shorts": [
+        "aruga-eclipse-ray-1",
+        "aruga-eclipse-ray-3",
+        "aruga-eclipse-ray-5",
+        "aruga-eclipse-ray-6"
       ],
       "links": {},
       "producer": "aruga",
       "moods": [
         "party",
         "workout"
+      ],
+      "fullTrack": "not-published"
+    },
+    {
+      "slug": "aruga-satellite",
+      "title": "Satellite",
+      "genre": "EDM",
+      "bpm": 128,
+      "released": "2026-11-05",
+      "cover": "media/covers/aruga-satellite.jpg",
+      "audio": "media/audio/aruga-satellite-preview.mp3",
+      "preview": true,
+      "drops": [
+        15,
+        45,
+        60
+      ],
+      "downloadable": false,
+      "shorts": [
+        "aruga-satellite-1",
+        "aruga-satellite-2",
+        "aruga-satellite-3",
+        "aruga-satellite-4"
+      ],
+      "links": {},
+      "producer": "aruga",
+      "moods": [
+        "drive",
+        "focus"
       ],
       "fullTrack": "not-published"
     },
@@ -82,6 +165,34 @@
       "moods": [
         "drive",
         "party"
+      ],
+      "fullTrack": "not-published"
+    },
+    {
+      "slug": "aruga-track01",
+      "title": "Track 01",
+      "genre": "EDM",
+      "bpm": null,
+      "released": "2026-10-25",
+      "cover": "media/covers/aruga-track01.jpg",
+      "audio": "media/audio/aruga-track01-preview.mp3",
+      "preview": true,
+      "drops": [
+        15,
+        45
+      ],
+      "downloadable": false,
+      "shorts": [
+        "aruga-track01-1",
+        "aruga-track01-2",
+        "aruga-track01-3",
+        "aruga-track01-4"
+      ],
+      "links": {},
+      "producer": "aruga",
+      "moods": [
+        "party",
+        "workout"
       ],
       "fullTrack": "not-published"
     }

@@ -9,10 +9,13 @@
    영상을 웹용(406x720, ~2MB)으로 압축해 `media/shorts/`에 넣고 `shorts.json`에 등록한다.
 3. **유입 링크** — 숏폼 설명/프로필 링크에 `https://<도메인>/?t=<slug>` 를 쓴다. 열면 그 곡이 로드되고 ▶ 한 번이면 재생.
 
-## 새 곡 추가
-1. 음원 mp3(128k 미리듣기 또는 풀버전)를 `media/audio/`, 커버(600x600 jpg)를 `media/covers/`에 넣는다.
-2. `data/tracks.json`의 `tracks`에 항목 추가 (title, audio, cover, genre, bpm, slug).
-3. 숏폼 생성 후 `sync_shorts.py` 실행 → 업로드한 뒤 `shorts.json`의 `external`에 YouTube/TikTok URL 기입.
+## 새 곡 추가 (숏폼 시스템의 곡을 가져오는 표준 절차)
+1. 곡 분석: `python shorts/songlab.py <음원> --out <폴더>` → `song_analysis.json` (마디 격자·드롭 구간).
+2. `python scripts/add_track.py --audio <음원> --analysis <song_analysis.json> --slug aruga-<곡> --title "<곡명>" --released YYYY-MM-DD --moods drive,party`
+   분석의 마디 격자에 맞춰 **75초(마디 단위·끝 페이드아웃) 미리듣기**를 자르고, 에너지 윤곽이 막대가 되는 **커버**를 만들고, `tracks.json` 에 최신순으로 등록한다. 전곡은 올리지 않는다.
+3. 숏폼: 큐 릴리스(`shorts-queue`)에서 영상을 내려받아 `python scripts/sync_shorts.py <폴더> <track-slug>` → 만들어진 숏폼 id 들을 곡의 `shorts` 배열에 적는다.
+4. `python scripts/make_waveforms.py` → `python scripts/build_pages.py` → 커밋·푸시(Pages 반영 약 10분).
+5. 업로드한 뒤 `shorts.json`의 `external`에 YouTube URL 기입.
 
 ## 로컬 실행
 ```

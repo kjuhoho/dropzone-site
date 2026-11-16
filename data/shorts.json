@@ -96,6 +96,102 @@
       "poster": "media/shorts/aruga-stardrive-8.jpg",
       "dropAt": 37,
       "external": {}
+    },
+    {
+      "id": "aruga-satellite-1",
+      "track": "aruga-satellite",
+      "video": "media/shorts/aruga-satellite-1.mp4",
+      "poster": "media/shorts/aruga-satellite-1.jpg",
+      "dropAt": 32,
+      "external": {}
+    },
+    {
+      "id": "aruga-satellite-2",
+      "track": "aruga-satellite",
+      "video": "media/shorts/aruga-satellite-2.mp4",
+      "poster": "media/shorts/aruga-satellite-2.jpg",
+      "dropAt": 152,
+      "external": {}
+    },
+    {
+      "id": "aruga-satellite-3",
+      "track": "aruga-satellite",
+      "video": "media/shorts/aruga-satellite-3.mp4",
+      "poster": "media/shorts/aruga-satellite-3.jpg",
+      "dropAt": 62,
+      "external": {}
+    },
+    {
+      "id": "aruga-satellite-4",
+      "track": "aruga-satellite",
+      "video": "media/shorts/aruga-satellite-4.mp4",
+      "poster": "media/shorts/aruga-satellite-4.jpg",
+      "dropAt": 122,
+      "external": {}
+    },
+    {
+      "id": "aruga-eclipse-ray-1",
+      "track": "aruga-eclipse-ray",
+      "video": "media/shorts/aruga-eclipse-ray-1.mp4",
+      "poster": "media/shorts/aruga-eclipse-ray-1.jpg",
+      "dropAt": 15,
+      "external": {}
+    },
+    {
+      "id": "aruga-eclipse-ray-3",
+      "track": "aruga-eclipse-ray",
+      "video": "media/shorts/aruga-eclipse-ray-3.mp4",
+      "poster": "media/shorts/aruga-eclipse-ray-3.jpg",
+      "dropAt": 45,
+      "external": {}
+    },
+    {
+      "id": "aruga-eclipse-ray-5",
+      "track": "aruga-eclipse-ray",
+      "video": "media/shorts/aruga-eclipse-ray-5.mp4",
+      "poster": "media/shorts/aruga-eclipse-ray-5.jpg",
+      "dropAt": 60,
+      "external": {}
+    },
+    {
+      "id": "aruga-eclipse-ray-6",
+      "track": "aruga-eclipse-ray",
+      "video": "media/shorts/aruga-eclipse-ray-6.mp4",
+      "poster": "media/shorts/aruga-eclipse-ray-6.jpg",
+      "dropAt": 90,
+      "external": {}
+    },
+    {
+      "id": "aruga-hoping-star-8",
+      "track": "aruga-hoping-star",
+      "video": "media/shorts/aruga-hoping-star-8.mp4",
+      "poster": "media/shorts/aruga-hoping-star-8.jpg",
+      "dropAt": 78,
+      "external": {}
+    },
+    {
+      "id": "aruga-hoping-star-12",
+      "track": "aruga-hoping-star",
+      "video": "media/shorts/aruga-hoping-star-12.mp4",
+      "poster": "media/shorts/aruga-hoping-star-12.jpg",
+      "dropAt": 14,
+      "external": {}
+    },
+    {
+      "id": "aruga-hoping-star-13",
+      "track": "aruga-hoping-star",
+      "video": "media/shorts/aruga-hoping-star-13.mp4",
+      "poster": "media/shorts/aruga-hoping-star-13.jpg",
+      "dropAt": 190,
+      "external": {}
+    },
+    {
+      "id": "aruga-hoping-star-18",
+      "track": "aruga-hoping-star",
+      "video": "media/shorts/aruga-hoping-star-18.mp4",
+      "poster": "media/shorts/aruga-hoping-star-18.jpg",
+      "dropAt": 78,
+      "external": {}
     }
   ]
 }
