@@ -15,7 +15,7 @@
    분석의 마디 격자에 맞춰 **75초(마디 단위·끝 페이드아웃) 미리듣기**를 자르고, 에너지 윤곽이 막대가 되는 **커버**를 만들고, `tracks.json` 에 최신순으로 등록한다. 전곡은 올리지 않는다.
 3. 숏폼: 큐 릴리스(`shorts-queue`)에서 영상을 내려받아 `python scripts/sync_shorts.py <폴더> <track-slug>` → 만들어진 숏폼 id 들을 곡의 `shorts` 배열에 적는다.
 4. `python scripts/make_waveforms.py` → `python scripts/build_pages.py` → 커밋·푸시(Pages 반영 약 10분).
-5. 업로드한 뒤 `shorts.json`의 `external`에 YouTube URL 기입.
+5. 유튜브 주소 연결: `sync_shorts.py` 에 `--source-slug <큐 슬러그>` 를 주면 원본 영상 id 가 `source` 로 기록된다. 게시가 진행될 때마다 `git -C .. pull --ff-only` → `python scripts/link_youtube.py --apply` 로 게시된 영상만(유튜브에서 실제로 열리는 것만) 카드에 연결한다. 연결된 카드엔 `YOUTUBE↗` 배지가 뜬다.
 
 ## 로컬 실행
 ```

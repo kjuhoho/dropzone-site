@@ -11,6 +11,7 @@ DATA = SITE / "data" / "shorts.json"
 
 ap = argparse.ArgumentParser()
 ap.add_argument("src"); ap.add_argument("track"); ap.add_argument("--prefix", default="aruga")
+ap.add_argument("--source-slug", default="", help="원본 영상의 곡 폴더/큐 슬러그(예: satellite). 주면 shorts.json 에 source 를 기록해 link_youtube.py 가 유튜브 주소를 연결한다")
 a = ap.parse_args()
 
 db = json.loads(DATA.read_text(encoding="utf-8"))
@@ -24,6 +25,6 @@ for f in sorted(Path(a.src).glob("*.mp4")):
     v, p = out / f"{sid}.mp4", out / f"{sid}.jpg"
     subprocess.run(["ffmpeg","-loglevel","error","-y","-i",str(f),"-vf","scale=406:720","-c:v","libx264","-crf","30","-preset","slow","-c:a","aac","-b:a","64k","-movflags","+faststart",str(v)],check=True)
     subprocess.run(["ffmpeg","-loglevel","error","-y","-ss","12","-i",str(f),"-frames:v","1","-vf","scale=406:720","-q:v","4",str(p)],check=True)
-    db["shorts"].append({"id":sid,"track":a.track,"video":f"media/shorts/{sid}.mp4","poster":f"media/shorts/{sid}.jpg","dropAt":int(m[2]),"external":{}})
+    db["shorts"].append({"id":sid,"track":a.track,"video":f"media/shorts/{sid}.mp4","poster":f"media/shorts/{sid}.jpg","dropAt":int(m[2]),"external":{}, **({"source": f"{a.source_slug}__{f.name}"} if a.source_slug else {})})
     print("추가:", sid)
 DATA.write_text(json.dumps(db, ensure_ascii=False, indent=2), encoding="utf-8")

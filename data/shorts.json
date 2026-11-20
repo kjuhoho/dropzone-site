@@ -7,7 +7,10 @@
       "video": "media/shorts/aruga-track01-1.mp4",
       "poster": "media/shorts/aruga-track01-1.jpg",
       "dropAt": 15,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/w1GGDyyzKEA"
+      },
+      "source": "aruga-track01__01_ledmatrix-9dec3_drop15s.mp4"
     },
     {
       "id": "aruga-track01-2",
@@ -15,7 +18,10 @@
       "video": "media/shorts/aruga-track01-2.mp4",
       "poster": "media/shorts/aruga-track01-2.jpg",
       "dropAt": 45,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/NvpWTQOYxgs"
+      },
+      "source": "aruga-track01__03_skyline-7286d_drop45s.mp4"
     },
     {
       "id": "aruga-track01-3",
@@ -23,7 +29,10 @@
       "video": "media/shorts/aruga-track01-3.mp4",
       "poster": "media/shorts/aruga-track01-3.jpg",
       "dropAt": 106,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/8Ip4boPPigs"
+      },
+      "source": "aruga-track01__04_type-seed-toxic_drop106s.mp4"
     },
     {
       "id": "aruga-track01-4",
@@ -31,7 +40,10 @@
       "video": "media/shorts/aruga-track01-4.mp4",
       "poster": "media/shorts/aruga-track01-4.jpg",
       "dropAt": 136,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/gXRVR56CrR4"
+      },
+      "source": "aruga-track01__02_orbs-seed-neon_drop136s.mp4"
     },
     {
       "id": "aruga-stardrive-1",
@@ -39,7 +51,10 @@
       "video": "media/shorts/aruga-stardrive-1.mp4",
       "poster": "media/shorts/aruga-stardrive-1.jpg",
       "dropAt": 145,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/F1hw2a26yJs"
+      },
+      "source": "mayghjt-stardrive__01_ledmatrix-20028_drop145s.mp4"
     },
     {
       "id": "aruga-stardrive-2",
@@ -47,7 +62,10 @@
       "video": "media/shorts/aruga-stardrive-2.mp4",
       "poster": "media/shorts/aruga-stardrive-2.jpg",
       "dropAt": 37,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/9SefLQGs7hg"
+      },
+      "source": "mayghjt-stardrive__02_tunnel-seed-neon_drop37s.mp4"
     },
     {
       "id": "aruga-stardrive-3",
@@ -55,7 +73,10 @@
       "video": "media/shorts/aruga-stardrive-3.mp4",
       "poster": "media/shorts/aruga-stardrive-3.jpg",
       "dropAt": 109,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/IseIbJgteI0"
+      },
+      "source": "mayghjt-stardrive__03_reactor-61520_drop109s.mp4"
     },
     {
       "id": "aruga-stardrive-4",
@@ -63,7 +84,10 @@
       "video": "media/shorts/aruga-stardrive-4.mp4",
       "poster": "media/shorts/aruga-stardrive-4.jpg",
       "dropAt": 85,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/BsMvikDt7Qc"
+      },
+      "source": "mayghjt-stardrive__04_skyline-84638_drop85s.mp4"
     },
     {
       "id": "aruga-stardrive-5",
@@ -71,7 +95,10 @@
       "video": "media/shorts/aruga-stardrive-5.mp4",
       "poster": "media/shorts/aruga-stardrive-5.jpg",
       "dropAt": 13,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/1SqrgdnAWww"
+      },
+      "source": "mayghjt-stardrive__05_type-917c5_drop13s.mp4"
     },
     {
       "id": "aruga-stardrive-6",
@@ -79,7 +106,10 @@
       "video": "media/shorts/aruga-stardrive-6.mp4",
       "poster": "media/shorts/aruga-stardrive-6.jpg",
       "dropAt": 123,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/N6AjPMdH6GQ"
+      },
+      "source": "mayghjt-stardrive__06_lasers-d0d7d_drop123s.mp4"
     },
     {
       "id": "aruga-stardrive-7",
@@ -87,7 +117,10 @@
       "video": "media/shorts/aruga-stardrive-7.mp4",
       "poster": "media/shorts/aruga-stardrive-7.jpg",
       "dropAt": 145,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/x9ZALhYHKjc"
+      },
+      "source": "mayghjt-stardrive__07_orbs-seed-ice_drop145s.mp4"
     },
     {
       "id": "aruga-stardrive-8",
@@ -95,7 +128,10 @@
       "video": "media/shorts/aruga-stardrive-8.mp4",
       "poster": "media/shorts/aruga-stardrive-8.jpg",
       "dropAt": 37,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/JkKXxmXstaI"
+      },
+      "source": "mayghjt-stardrive__08_terrain-2ad17_drop37s.mp4"
     },
     {
       "id": "aruga-satellite-1",
@@ -103,7 +139,10 @@
       "video": "media/shorts/aruga-satellite-1.mp4",
       "poster": "media/shorts/aruga-satellite-1.jpg",
       "dropAt": 32,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/iZIb9Jie--0"
+      },
+      "source": "satellite__01_ledmatrix-e6a2b_drop32s.mp4"
     },
     {
       "id": "aruga-satellite-2",
@@ -111,7 +150,10 @@
       "video": "media/shorts/aruga-satellite-2.mp4",
       "poster": "media/shorts/aruga-satellite-2.jpg",
       "dropAt": 152,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/IPZM9joNo1g"
+      },
+      "source": "satellite__02_terrain-81313_drop152s.mp4"
     },
     {
       "id": "aruga-satellite-3",
@@ -119,7 +161,10 @@
       "video": "media/shorts/aruga-satellite-3.mp4",
       "poster": "media/shorts/aruga-satellite-3.jpg",
       "dropAt": 62,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/5uwExEzHBL8"
+      },
+      "source": "satellite__03_reactor-739a1_drop62s.mp4"
     },
     {
       "id": "aruga-satellite-4",
@@ -127,7 +172,10 @@
       "video": "media/shorts/aruga-satellite-4.mp4",
       "poster": "media/shorts/aruga-satellite-4.jpg",
       "dropAt": 122,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/VlkeyBWDjig"
+      },
+      "source": "satellite__04_tunnel-a5759_drop122s.mp4"
     },
     {
       "id": "aruga-eclipse-ray-1",
@@ -135,7 +183,8 @@
       "video": "media/shorts/aruga-eclipse-ray-1.mp4",
       "poster": "media/shorts/aruga-eclipse-ray-1.jpg",
       "dropAt": 15,
-      "external": {}
+      "external": {},
+      "source": "eclipse-ray__01_warp-5a06a_drop15s.mp4"
     },
     {
       "id": "aruga-eclipse-ray-3",
@@ -143,7 +192,8 @@
       "video": "media/shorts/aruga-eclipse-ray-3.mp4",
       "poster": "media/shorts/aruga-eclipse-ray-3.jpg",
       "dropAt": 45,
-      "external": {}
+      "external": {},
+      "source": "eclipse-ray__03_orbs-18bde_drop45s.mp4"
     },
     {
       "id": "aruga-eclipse-ray-5",
@@ -151,7 +201,10 @@
       "video": "media/shorts/aruga-eclipse-ray-5.mp4",
       "poster": "media/shorts/aruga-eclipse-ray-5.jpg",
       "dropAt": 60,
-      "external": {}
+      "external": {
+        "youtube": "https://www.youtube.com/shorts/Az-ga-ZJI3A"
+      },
+      "source": "eclipse-ray__05_skyline-c4b65_drop60s.mp4"
     },
     {
       "id": "aruga-eclipse-ray-6",
@@ -159,7 +212,8 @@
       "video": "media/shorts/aruga-eclipse-ray-6.mp4",
       "poster": "media/shorts/aruga-eclipse-ray-6.jpg",
       "dropAt": 90,
-      "external": {}
+      "external": {},
+      "source": "eclipse-ray__06_terrain-5e991_drop90s.mp4"
     },
     {
       "id": "aruga-hoping-star-8",
@@ -167,7 +221,8 @@
       "video": "media/shorts/aruga-hoping-star-8.mp4",
       "poster": "media/shorts/aruga-hoping-star-8.jpg",
       "dropAt": 78,
-      "external": {}
+      "external": {},
+      "source": "hoping-star__08_skyline-6d7cb_drop78s.mp4"
     },
     {
       "id": "aruga-hoping-star-12",
@@ -175,7 +230,8 @@
       "video": "media/shorts/aruga-hoping-star-12.mp4",
       "poster": "media/shorts/aruga-hoping-star-12.jpg",
       "dropAt": 14,
-      "external": {}
+      "external": {},
+      "source": "hoping-star-v1__v1_02_lasers-c7590_drop14s.mp4"
     },
     {
       "id": "aruga-hoping-star-13",
@@ -183,7 +239,8 @@
       "video": "media/shorts/aruga-hoping-star-13.mp4",
       "poster": "media/shorts/aruga-hoping-star-13.jpg",
       "dropAt": 190,
-      "external": {}
+      "external": {},
+      "source": "hoping-star-v1__v1_03_footage-b1ab1_drop190s.mp4"
     },
     {
       "id": "aruga-hoping-star-18",
@@ -191,7 +248,8 @@
       "video": "media/shorts/aruga-hoping-star-18.mp4",
       "poster": "media/shorts/aruga-hoping-star-18.jpg",
       "dropAt": 78,
-      "external": {}
+      "external": {},
+      "source": "hoping-star-v1__v1_08_ribbons-0e043_drop78s.mp4"
     }
   ]
 }

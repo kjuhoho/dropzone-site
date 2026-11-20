@@ -367,7 +367,8 @@ body.playing .avatar{animation:beat .9s ease-in-out infinite alternate}
 .short::after{content:"";position:absolute;inset:auto 0 0 0;height:36%;background:linear-gradient(transparent,#000d);pointer-events:none}
 .short video,.short img{width:100%;height:100%;object-fit:cover;display:block}
 .short .badge{position:absolute;left:13px;bottom:14px;z-index:2;font:500 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:0;background:none;backdrop-filter:none}
-.short .ext{position:absolute;right:8px;top:8px;z-index:3;font:500 11px var(--f-mono);padding:3px 8px;border-radius:99px;background:var(--c2);color:#fff}
+.short .ext{position:absolute;right:8px;top:8px;z-index:3;font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:var(--c2);color:#fff;transition:filter .15s}
+.short .ext:hover{filter:brightness(1.15)}
 .short .go-game{position:absolute;left:10px;top:10px;z-index:3;font-size:13px;line-height:1;padding:6px 8px;border-radius:99px;background:linear-gradient(90deg,var(--c1),var(--c2));color:#07060d}
 .short button{position:absolute;inset:0;width:100%;z-index:1}
 .short button::after{content:"▶";position:absolute;right:11px;bottom:9px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12px;padding-left:2px;background:#ffffff1f;backdrop-filter:blur(6px);border:1px solid #ffffff33;transition:.2s}
